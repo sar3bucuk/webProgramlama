@@ -1,0 +1,92 @@
+@model proje.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<div class="auth-container">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <i class="bi bi-person-plus auth-icon"></i>
+                        <h2 class="auth-title">Kayıt Ol</h2>
+                        <p class="auth-subtitle">Yeni hesap oluşturun ve başlayın</p>
+                    </div>
+                    <div class="auth-card-body">
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Any(x => x.Value?.Errors?.Any() == true))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div asp-validation-summary="All" class="mb-0"></div>
+                            </div>
+                        }
+                        <form asp-action="Register" method="post" autocomplete="off">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="FirstName" class="form-control auth-input" placeholder="Ad" autocomplete="off" />
+                                        <label asp-for="FirstName" class="auth-label">
+                                            <i class="bi bi-person me-2"></i>Ad
+                                        </label>
+                                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="LastName" class="form-control auth-input" placeholder="Soyad" autocomplete="off" />
+                                        <label asp-for="LastName" class="auth-label">
+                                            <i class="bi bi-person me-2"></i>Soyad
+                                        </label>
+                                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input asp-for="Email" class="form-control auth-input" placeholder="E-posta" autocomplete="off" />
+                                <label asp-for="Email" class="auth-label">
+                                    <i class="bi bi-envelope me-2"></i>E-posta
+                                </label>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input asp-for="Password" class="form-control auth-input" placeholder="Şifre" autocomplete="new-password" />
+                                <label asp-for="Password" class="auth-label">
+                                    <i class="bi bi-lock me-2"></i>Şifre
+                                </label>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                            <div class="form-floating mb-4">
+                                <input asp-for="ConfirmPassword" class="form-control auth-input" placeholder="Şifre Tekrar" autocomplete="new-password" />
+                                <label asp-for="ConfirmPassword" class="auth-label">
+                                    <i class="bi bi-lock-fill me-2"></i>Şifre Tekrar
+                                </label>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-auth-primary">
+                                    <i class="bi bi-person-plus me-2"></i>Kayıt Ol
+                                </button>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-auth-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Ana Sayfaya Dön
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="auth-card-footer">
+                        <p class="mb-0 text-center">
+                            Zaten hesabınız var mı? 
+                            <a asp-action="Login" class="auth-link">Giriş Yapın</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

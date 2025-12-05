@@ -1,0 +1,33 @@
+@{
+    bool isActive = ViewBag.IsActive ?? false;
+    string iconClass = ViewBag.IconClass ?? "bi-toggle-on";
+    string badgeSize = ViewBag.BadgeSize ?? "fs-6";
+    bool showIcon = ViewBag.ShowIcon ?? true;
+}
+
+@if (showIcon)
+{
+    <div class="d-flex align-items-center">
+        <i class="bi @iconClass @(isActive ? "text-success" : "text-secondary") me-2 @badgeSize"></i>
+        @if (isActive)
+        {
+            <span class="badge bg-success @badgeSize">Aktif</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary @badgeSize">Pasif</span>
+        }
+    </div>
+}
+else
+{
+    @if (isActive)
+    {
+        <span class="badge bg-success @badgeSize">Aktif</span>
+    }
+    else
+    {
+        <span class="badge bg-secondary @badgeSize">Pasif</span>
+    }
+}
+

@@ -1,0 +1,72 @@
+@model proje.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<div class="auth-container">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <i class="bi bi-box-arrow-in-right auth-icon"></i>
+                        <h2 class="auth-title">Giriş Yap</h2>
+                        <p class="auth-subtitle">Hesabınıza giriş yapın</p>
+                    </div>
+                    <div class="auth-card-body">
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Any(x => x.Value?.Errors?.Any() == true))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div asp-validation-summary="All" class="mb-0"></div>
+                            </div>
+                        }
+                        <form asp-action="Login" method="post" autocomplete="off">
+                            <input type="hidden" name="returnUrl" value="@(ViewData["ReturnUrl"]?.ToString() ?? "")" />
+                            <div class="form-floating mb-3">
+                                <input asp-for="Email" class="form-control auth-input" placeholder="E-posta" autocomplete="username" />
+                                <label asp-for="Email" class="auth-label">
+                                    <i class="bi bi-envelope me-2"></i>E-posta
+                                </label>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input asp-for="Password" class="form-control auth-input" placeholder="Şifre" autocomplete="current-password" />
+                                <label asp-for="Password" class="auth-label">
+                                    <i class="bi bi-lock me-2"></i>Şifre
+                                </label>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                            <div class="form-check mb-4">
+                                <input class="form-check-input auth-checkbox" type="checkbox" asp-for="RememberMe" id="rememberMe" />
+                                <label class="form-check-label auth-checkbox-label" for="rememberMe">
+                                    Beni hatırla
+                                </label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-auth-primary">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                                </button>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-auth-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Ana Sayfaya Dön
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="auth-card-footer">
+                        <p class="mb-0 text-center">
+                            Hesabınız yok mu? 
+                            <a asp-action="Register" class="auth-link">Kayıt Olun</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

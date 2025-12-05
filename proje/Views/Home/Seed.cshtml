@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Admin Kullanıcısı Oluştur";
+}
+
+<h1>Admin Kullanıcısı Oluştur</h1>
+
+<div class="alert alert-info">
+    <strong>Bilgi:</strong> Bu sayfa admin kullanıcısını oluşturmak için kullanılır. 
+    Sadece ilk kurulumda gereklidir.
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Admin Kullanıcı Bilgileri</h5>
+        <ul>
+            <li><strong>Email:</strong> g231210012@sakarya.edu.tr</li>
+            <li><strong>Şifre:</strong> sau</li>
+        </ul>
+        <button id="createAdminBtn" class="btn btn-primary">Admin Kullanıcısı Oluştur</button>
+        <div id="result" class="mt-3"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('createAdminBtn').addEventListener('click', async function() {
+            const btn = this;
+            const resultDiv = document.getElementById('result');
+            
+            btn.disabled = true;
+            btn.textContent = 'Oluşturuluyor...';
+            resultDiv.innerHTML = '<div class="alert alert-info">İşlem yapılıyor...</div>';
+            
+            try {
+                const response = await fetch('/Seed/CreateAdmin');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Hata: ' + error.message + '</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Admin Kullanıcısı Oluştur';
+            }
+        });
+    </script>
+}
+
