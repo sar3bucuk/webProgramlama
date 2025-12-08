@@ -1,0 +1,351 @@
+@model proje.Models.Gym
+@{
+    ViewData["Title"] = "Spor Salonu Detayları";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1400px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>@Model.Name - Detaylar</h2>
+                            <p class="text-muted">Spor salonu bilgileri ve bağlı antrenörler</p>
+                        </div>
+                        <a href="@Url.Action("Gyms", "Admin")" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Geri Dön
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Spor Salonu Bilgileri -->
+                <div class="gym-details-section">
+                    <h3 class="section-title">Spor Salonu Bilgileri</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <strong>Ad:</strong>
+                            <span>@Model.Name</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Adres:</strong>
+                            <span>@(Model.Address ?? "-")</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Telefon:</strong>
+                            <span>@(Model.Phone ?? "-")</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>E-posta:</strong>
+                            <span>@(Model.Email ?? "-")</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Çalışma Saatleri:</strong>
+                            <span>@Model.OpeningTime.ToString(@"hh\:mm") - @Model.ClosingTime.ToString(@"hh\:mm")</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Durum:</strong>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Pasif</span>
+                            }
+                        </div>
+                        <div class="detail-item">
+                            <strong>Oluşturulma Tarihi:</strong>
+                            <span>@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
+                        </div>
+                        @if (Model.UpdatedDate.HasValue)
+                        {
+                            <div class="detail-item">
+                                <strong>Güncellenme Tarihi:</strong>
+                                <span>@Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Hizmetler -->
+                <div class="gym-services-section">
+                    <h3 class="section-title">Hizmetler</h3>
+                    @if (Model.GymServices != null && Model.GymServices.Any())
+                    {
+                        <div class="services-grid">
+                            @foreach (var gymService in Model.GymServices)
+                            {
+                                <div class="service-card">
+                                    <div class="service-header">
+                                        <h5>@gymService.Service?.Name</h5>
+                                        @if (gymService.IsActive)
+                                        {
+                                            <span class="badge bg-success">Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Pasif</span>
+                                        }
+                                    </div>
+                                    <div class="service-details">
+                                        <div class="service-info">
+                                            <strong>Süre:</strong> <span>@gymService.Duration dakika</span>
+                                        </div>
+                                        <div class="service-info">
+                                            <strong>Ücret:</strong> <span>@gymService.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz hizmet eklenmemiş.</p>
+                    }
+                </div>
+
+                <!-- Antrenörler -->
+                <div class="gym-trainers-section">
+                    <h3 class="section-title">Bağlı Antrenörler</h3>
+                    @if (Model.Trainers != null && Model.Trainers.Any())
+                    {
+                        <div class="trainers-table-card">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Ad Soyad</th>
+                                        <th>E-posta</th>
+                                        <th>Telefon</th>
+                                        <th>Deneyim</th>
+                                        <th>Hizmetler</th>
+                                        <th>Durum</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var trainer in Model.Trainers)
+                                    {
+                                        <tr>
+                                            <td><strong style="color: #1e293b;">@trainer.FullName</strong></td>
+                                            <td style="color: #64748b;">@(trainer.User?.Email ?? trainer.Email ?? "-")</td>
+                                            <td style="color: #64748b;">@(trainer.Phone ?? "-")</td>
+                                            <td style="color: #64748b;">@trainer.ExperienceYears yıl</td>
+                                            <td>
+                                                @if (trainer.TrainerServices != null && trainer.TrainerServices.Any())
+                                                {
+                                                    <div class="trainer-services-list">
+                                                        @foreach (var ts in trainer.TrainerServices.Take(3))
+                                                        {
+                                                            <span class="service-badge">@ts.Service?.Name</span>
+                                                        }
+                                                        @if (trainer.TrainerServices.Count > 3)
+                                                        {
+                                                            <span class="service-badge">+@(trainer.TrainerServices.Count - 3)</span>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color: #64748b; font-size: 0.875rem;">Hizmet yok</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (trainer.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Aktif</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Pasif</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("EditTrainer", "Admin", new { id = trainer.Id })" class="btn btn-sm btn-outline-primary">
+                                                    Düzenle
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Bu spor salonuna henüz antrenör atanmamış.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .gym-details-section,
+    .gym-services-section,
+    .gym-trainers-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .section-title {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-item strong {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-item span {
+        color: var(--text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .service-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .service-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .service-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .service-header h5 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .service-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .service-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .service-info strong {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .service-info span {
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+
+    .trainers-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 1rem;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .trainer-services-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .service-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .btn-outline-info {
+        color: #0dcaf0;
+        border-color: #0dcaf0;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: white;
+    }
+</style>
+

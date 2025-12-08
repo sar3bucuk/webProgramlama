@@ -1,0 +1,213 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<!-- Hero Section -->
+<section class="hero-section-modern">
+    <div class="hero-background-video">
+        <div id="videoCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <video class="hero-bg-video" autoplay muted loop playsinline>
+                        <source src="~/videos/slider1.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-overlay"></div>
+                </div>
+                <div class="carousel-item">
+                    <video class="hero-bg-video" autoplay muted loop playsinline>
+                        <source src="~/videos/slider2.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-overlay"></div>
+                </div>
+                <div class="carousel-item">
+                    <video class="hero-bg-video" autoplay muted loop playsinline>
+                        <source src="~/videos/slider3.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-overlay"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hero-content-modern">
+        <div class="container">
+            <div class="hero-text-wrapper">
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                {
+                    <h1 class="hero-title-modern">
+                        <span class="hero-title-line1">Yönetim Paneli</span>
+                        <span class="hero-title-line2">Hoş Geldiniz</span>
+                    </h1>
+                    <p class="hero-subtitle-modern">
+                        Tüm spor salonlarınızı, üyelerinizi, antrenörlerinizi ve randevularınızı tek bir yerden yönetin. 
+                        Sisteminizin genel durumunu buradan takip edin ve yönetim işlemlerinizi kolayca gerçekleştirin.
+                    </p>
+                    <div class="hero-cta-modern">
+                        <a href="@Url.Action("Gyms", "Admin")" class="btn-modern-primary">🏋️ Spor Salonlarını Yönet</a>
+                        <a href="@Url.Action("Index", "Services")" class="btn-modern-secondary">⚙️ Hizmetleri Yönet</a>
+                    </div>
+                }
+                else
+                {
+                    <h1 class="hero-title-modern">
+                        <span class="hero-title-line1">Hayalinizdeki vücuda</span>
+                        <span class="hero-title-line2">profesyonel destekle ulaşın</span>
+                    </h1>
+                    <p class="hero-subtitle-modern">
+                        Modern ekipmanlar, uzman antrenörler ve kişiselleştirilmiş programlarla sağlıklı yaşam 
+                        yolculuğunuza bizimle başlayın. Hedeflerinize ulaşmak için yanınızdayız.
+                    </p>
+                    <div class="hero-cta-modern">
+                        <a href="@Url.Action("Register", "Account")" class="btn-modern-primary">Hemen Başlayın</a>
+                        <a href="#services" class="btn-modern-secondary">Hizmetlerimiz</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+{
+    <!-- Admin Yönetim Kartları -->
+    <section class="services-section-modern" id="services">
+        <div class="container">
+            <div class="section-header-modern">
+                <span class="section-label">Yönetim Paneli</span>
+                <h2 class="section-title-modern">Hızlı Erişim</h2>
+                <p class="section-description-modern">
+                    Sistem yönetimi için tüm araçlara buradan hızlıca erişebilirsiniz
+                </p>
+            </div>
+
+            <div class="services-grid-modern">
+                <div class="service-card-modern">
+                    <div class="service-number">01</div>
+                    <div class="service-icon-modern">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h3 class="service-title-modern">Spor Salonları</h3>
+                    <p class="service-text-modern">
+                        Spor salonlarınızı yönetin, yeni salon ekleyin, mevcut salonları düzenleyin ve hizmetlerini yapılandırın.
+                    </p>
+                    <a href="@Url.Action("Gyms", "Admin")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Spor Salonlarını Yönet</a>
+                </div>
+
+                <div class="service-card-modern">
+                    <div class="service-number">02</div>
+                    <div class="service-icon-modern">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <h3 class="service-title-modern">Hizmetler</h3>
+                    <p class="service-text-modern">
+                        Sistemdeki hizmetleri yönetin, yeni hizmetler ekleyin ve mevcut hizmetleri düzenleyin.
+                    </p>
+                    <a href="@Url.Action("Index", "Services")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Hizmetleri Yönet</a>
+                </div>
+
+                <div class="service-card-modern">
+                    <div class="service-number">03</div>
+                    <div class="service-icon-modern">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3 class="service-title-modern">Üyeler & Antrenörler</h3>
+                    <p class="service-text-modern">
+                        Üyelerinizi ve antrenörlerinizi yönetin, bilgilerini görüntüleyin ve düzenleyin.
+                    </p>
+                    <a href="#" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Yakında</a>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <!-- Services Section -->
+    <section class="services-section-modern" id="services">
+        <div class="container">
+            <div class="section-header-modern">
+                <span class="section-label">Hizmetlerimiz</span>
+                <h2 class="section-title-modern">Size Özel Çözümler</h2>
+                <p class="section-description-modern">
+                    Hedeflerinize ulaşmak için ihtiyacınız olan tüm hizmetler tek çatı altında
+                </p>
+            </div>
+
+            <div class="services-grid-modern">
+                <div class="service-card-modern">
+                    <div class="service-number">01</div>
+                    <div class="service-icon-modern">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h3 class="service-title-modern">Kapsamlı Spor Salonları</h3>
+                    <p class="service-text-modern">
+                        Modern ekipmanlar ve geniş çalışma alanlarıyla donatılmış spor salonlarımızda 
+                        tüm fitness ihtiyaçlarınızı karşılayın.
+                    </p>
+                </div>
+
+                <div class="service-card-modern">
+                    <div class="service-number">02</div>
+                    <div class="service-icon-modern">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <h3 class="service-title-modern">Uzman Antrenörler</h3>
+                    <p class="service-text-modern">
+                        Sertifikalı ve deneyimli antrenörlerimizle kişiselleştirilmiş antrenman programları 
+                        ve profesyonel rehberlik alın.
+                    </p>
+                </div>
+
+                <div class="service-card-modern">
+                    <div class="service-number">03</div>
+                    <div class="service-icon-modern">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h3 class="service-title-modern">Online Randevu Sistemi</h3>
+                    <p class="service-text-modern">
+                        Kolay ve hızlı randevu alma sistemi ile istediğiniz zaman antrenörünüzü seçin 
+                        ve randevunuzu oluşturun.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>
+        // Modern hero video carousel
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousel = document.querySelector('#videoCarousel');
+            if (carousel) {
+                const carouselInstance = new bootstrap.Carousel(carousel, {
+                    interval: 6000,
+                    wrap: true,
+                    pause: false
+                });
+
+                // Video carousel değiştiğinde videoları yeniden başlat
+                carousel.addEventListener('slide.bs.carousel', function (e) {
+                    const videos = this.querySelectorAll('video');
+                    videos.forEach(video => {
+                        video.pause();
+                        video.currentTime = 0;
+                    });
+                });
+                
+                carousel.addEventListener('slid.bs.carousel', function (e) {
+                    const activeVideo = this.querySelector('.carousel-item.active video');
+                    if (activeVideo) {
+                        activeVideo.play().catch(err => console.log('Video play error:', err));
+                    }
+                });
+
+                // İlk videoyu başlat
+                const firstVideo = carousel.querySelector('.carousel-item.active video');
+                if (firstVideo) {
+                    firstVideo.play().catch(err => console.log('Video play error:', err));
+                }
+            }
+        });
+    </script>
+}
+

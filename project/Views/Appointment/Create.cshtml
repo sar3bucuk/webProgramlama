@@ -1,0 +1,277 @@
+@model proje.Models.Appointment
+@{
+    ViewData["Title"] = "Randevu Al";
+    Layout = "_Layout";
+    var gyms = ViewBag.Gyms as IEnumerable<proje.Models.Gym> ?? new List<proje.Models.Gym>();
+    var services = ViewBag.Services as IEnumerable<proje.Models.Service> ?? new List<proje.Models.Service>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1000px;">
+        <div class="auth-card-modern">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Randevu Al</h2>
+                <p class="auth-subtitle-modern">Antrenörünüzle randevu oluşturun</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Create" method="post" class="auth-form-modern" id="appointmentForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="form-group-modern">
+                    <label for="gymSelect" class="form-label-modern">Spor Salonu <span class="text-danger">*</span></label>
+                    <select id="gymSelect" name="gymSelect" class="form-control-modern" required>
+                        <option value="">Spor Salonu Seçin</option>
+                        @foreach (var gym in gyms)
+                        {
+                            <option value="@gym.Id">@gym.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="GymServiceId" class="form-label-modern">Hizmet <span class="text-danger">*</span></label>
+                    <select asp-for="GymServiceId" id="serviceSelect" class="form-control-modern" required>
+                        <option value="">Önce spor salonu seçin</option>
+                    </select>
+                    <span asp-validation-for="GymServiceId" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="AppointmentDate" class="form-label-modern">Randevu Tarihi <span class="text-danger">*</span></label>
+                            <input asp-for="AppointmentDate" type="date" class="form-control-modern" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="AppointmentTime" class="form-label-modern">Başlangıç Saati <span class="text-danger">*</span></label>
+                            <input asp-for="AppointmentTime" type="time" class="form-control-modern" required />
+                            <small class="text-muted">Süre seçilen hizmetten otomatik alınacaktır</small>
+                            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="TrainerId" class="form-label-modern">Antrenör <span class="text-danger">*</span></label>
+                    <select asp-for="TrainerId" id="trainerSelect" class="form-control-modern" required>
+                        <option value="">Önce tarih, saat ve hizmet seçin</option>
+                    </select>
+                    <span asp-validation-for="TrainerId" class="text-danger"></span>
+                </div>
+
+                <div id="trainerInfo" class="trainer-info-card" style="display: none;">
+                    <div id="trainerDetails"></div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Notes" class="form-label-modern">Notlar (Opsiyonel)</label>
+                    <textarea asp-for="Notes" class="form-control-modern" rows="3" placeholder="Randevu ile ilgili özel notlarınız..."></textarea>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("MyAppointments", "Appointment")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Randevu Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let currentDuration = 0;
+
+        document.getElementById('gymSelect').addEventListener('change', function() {
+            const gymId = this.value;
+            const serviceSelect = document.getElementById('serviceSelect');
+            const trainerSelect = document.getElementById('trainerSelect');
+            
+            serviceSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            trainerSelect.innerHTML = '<option value="">Önce tarih, saat ve hizmet seçin</option>';
+            document.getElementById('trainerInfo').style.display = 'none';
+
+            if (gymId) {
+                fetch('@Url.Action("GetGymServices", "Appointment")?gymId=' + gymId, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        serviceSelect.innerHTML = '<option value="">Hizmet Seçin</option>';
+                        data.services.forEach(service => {
+                            const option = document.createElement('option');
+                            option.value = service.id.toString(); // String olarak set et
+                            option.textContent = service.name + ' (' + service.duration + ' dk - ' + service.price.toFixed(2) + ' ₺)';
+                            option.setAttribute('data-duration', service.duration);
+                            option.setAttribute('data-price', service.price);
+                            serviceSelect.appendChild(option);
+                        });
+                    }
+                });
+            } else {
+                serviceSelect.innerHTML = '<option value="">Önce spor salonu seçin</option>';
+            }
+        });
+
+        document.getElementById('serviceSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                currentDuration = parseInt(selectedOption.getAttribute('data-duration'));
+                checkAvailability();
+            }
+        });
+
+        document.getElementById('AppointmentDate').addEventListener('change', checkAvailability);
+        document.getElementById('AppointmentTime').addEventListener('change', checkAvailability);
+
+        function checkAvailability() {
+            const gymId = document.getElementById('gymSelect').value;
+            const gymServiceId = document.getElementById('serviceSelect').value;
+            const appointmentDate = document.getElementById('AppointmentDate').value;
+            const appointmentTime = document.getElementById('AppointmentTime').value;
+
+            const trainerSelect = document.getElementById('trainerSelect');
+            trainerSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            document.getElementById('trainerInfo').style.display = 'none';
+
+            if (gymId && gymServiceId && appointmentDate && appointmentTime && currentDuration > 0) {
+                fetch('@Url.Action("GetAvailableTrainers", "Appointment")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: new URLSearchParams({
+                        gymId: gymId,
+                        gymServiceId: gymServiceId,
+                        appointmentDate: appointmentDate,
+                        appointmentTime: appointmentTime,
+                        duration: currentDuration
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        trainerSelect.innerHTML = '<option value="">Antrenör Seçin</option>';
+                        if (data.trainers.length > 0) {
+                            data.trainers.forEach(trainer => {
+                                const option = document.createElement('option');
+                                option.value = trainer.id.toString(); // String olarak set et
+                                option.textContent = trainer.name + (trainer.experience > 0 ? ' (' + trainer.experience + ' yıl deneyim)' : '');
+                                option.setAttribute('data-bio', trainer.bio || '');
+                                trainerSelect.appendChild(option);
+                            });
+                        } else {
+                            trainerSelect.innerHTML = '<option value="">Müsait antrenör bulunamadı</option>';
+                        }
+                    }
+                });
+            }
+        }
+
+        document.getElementById('trainerSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const trainerInfo = document.getElementById('trainerInfo');
+            const trainerDetails = document.getElementById('trainerDetails');
+
+            if (selectedOption.value && selectedOption.getAttribute('data-bio')) {
+                trainerDetails.innerHTML = '<strong>Biyografi:</strong> ' + selectedOption.getAttribute('data-bio');
+                trainerInfo.style.display = 'block';
+            } else {
+                trainerInfo.style.display = 'none';
+            }
+        });
+
+        // Form submit öncesi kontrol
+        document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+            const gymServiceId = document.getElementById('serviceSelect').value;
+            const trainerId = document.getElementById('trainerSelect').value;
+            
+            console.log('Form submit - GymServiceId:', gymServiceId, 'TrainerId:', trainerId);
+            
+            if (!gymServiceId || gymServiceId === '' || gymServiceId === '0') {
+                e.preventDefault();
+                alert('Lütfen bir hizmet seçin.');
+                return false;
+            }
+            
+            if (!trainerId || trainerId === '' || trainerId === '0') {
+                e.preventDefault();
+                alert('Lütfen bir antrenör seçin.');
+                return false;
+            }
+            
+            // Değerlerin doğru gönderildiğinden emin ol
+            const serviceSelect = document.getElementById('serviceSelect');
+            const trainerSelect = document.getElementById('trainerSelect');
+            
+            // Select elementlerinin value'larını kontrol et
+            if (!serviceSelect.value || serviceSelect.value === '' || serviceSelect.value === '0') {
+                e.preventDefault();
+                alert('Lütfen bir hizmet seçin.');
+                return false;
+            }
+            
+            if (!trainerSelect.value || trainerSelect.value === '' || trainerSelect.value === '0') {
+                e.preventDefault();
+                alert('Lütfen bir antrenör seçin.');
+                return false;
+            }
+        });
+    </script>
+}
+
+<style>
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+
+    .trainer-info-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .trainer-info-card strong {
+        color: #64748b;
+        font-weight: 600;
+    }
+</style>
+

@@ -1,0 +1,67 @@
+@model proje.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Kayıt Ol";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern">
+        <div class="auth-card-modern">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Hesap Oluştur</h2>
+                <p class="auth-subtitle-modern">Yeni bir hesap oluşturun</p>
+            </div>
+            
+            <form asp-action="Register" method="post" class="auth-form-modern">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="FirstName" class="form-label-modern">Ad</label>
+                            <input asp-for="FirstName" class="form-control-modern" placeholder="Adınız" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="LastName" class="form-label-modern">Soyad</label>
+                            <input asp-for="LastName" class="form-control-modern" placeholder="Soyadınız" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group-modern">
+                    <label asp-for="Email" class="form-label-modern">E-posta</label>
+                    <input asp-for="Email" type="email" class="form-control-modern" placeholder="ornek@email.com" autocomplete="off" value="" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group-modern">
+                    <label asp-for="Password" class="form-label-modern">Şifre</label>
+                    <input asp-for="Password" type="password" class="form-control-modern" placeholder="••••••••" autocomplete="new-password" value="" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group-modern">
+                    <label asp-for="ConfirmPassword" class="form-label-modern">Şifre Tekrar</label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control-modern" placeholder="••••••••" autocomplete="new-password" value="" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+                
+                <button type="submit" class="btn-auth-modern w-100">Kayıt Ol</button>
+                
+                <div class="auth-footer-modern">
+                    <p>Zaten hesabınız var mı? <a asp-action="Login" class="auth-link-modern">Giriş Yap</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

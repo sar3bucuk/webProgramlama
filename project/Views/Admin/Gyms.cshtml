@@ -1,0 +1,266 @@
+@model IEnumerable<proje.Models.Gym>
+@{
+    ViewData["Title"] = "Spor Salonları Yönetimi";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1400px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <!-- Main Content -->
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>Spor Salonları</h2>
+                            <p class="text-muted">Spor salonlarını yönetin</p>
+                        </div>
+                        <a href="@Url.Action("CreateGym", "Admin")" class="btn btn-primary">
+                            <span>+</span> Yeni Spor Salonu Ekle
+                        </a>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <div class="gyms-table-card">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Ad</th>
+                                <th>Adres</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th>Çalışma Saatleri</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var gym in Model)
+                                {
+                                    <tr>
+                                        <td><strong style="color: #1e293b;">@gym.Name</strong></td>
+                                        <td style="color: #64748b;">@(gym.Address ?? "-")</td>
+                                        <td style="color: #64748b;">@(gym.Phone ?? "-")</td>
+                                        <td style="color: #64748b;">@(gym.Email ?? "-")</td>
+                                        <td>@gym.OpeningTime.ToString(@"hh\:mm") - @gym.ClosingTime.ToString(@"hh\:mm")</td>
+                                        <td>
+                                            @if (gym.IsActive)
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Pasif</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("GymDetails", "Admin", new { id = gym.Id })" class="btn btn-sm btn-outline-info" title="Detaylar">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("EditGym", "Admin", new { id = gym.Id })" class="btn btn-sm btn-outline-primary">
+                                                    Düzenle
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                                                        data-gym-id="@gym.Id" 
+                                                        data-gym-name="@gym.Name"
+                                                        data-gym-address="@(gym.Address ?? "-")"
+                                                        data-gym-phone="@(gym.Phone ?? "-")"
+                                                        data-gym-email="@(gym.Email ?? "-")"
+                                                        data-gym-active="@gym.IsActive">
+                                                    Sil
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        Henüz spor salonu eklenmemiş. <a href="@Url.Action("CreateGym", "Admin")">İlk spor salonunu ekleyin</a>.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <span style="font-size: 1.5rem;">⚠️</span> Spor Salonu Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uyarı!</strong> Bu işlem geri alınamaz. Spor salonu ve tüm ilişkili veriler (hizmetler, antrenörler, randevular) silinecektir.
+                </div>
+
+                <div class="delete-info-modal">
+                    <h6 style="margin-bottom: 1rem; color: #1e293b; font-weight: 600;">Silmek istediğiniz spor salonu:</h6>
+                    <div class="info-item-modal">
+                        <strong>Ad:</strong> <span id="modal-gym-name"></span>
+                    </div>
+                    <div class="info-item-modal">
+                        <strong>Adres:</strong> <span id="modal-gym-address"></span>
+                    </div>
+                    <div class="info-item-modal">
+                        <strong>Telefon:</strong> <span id="modal-gym-phone"></span>
+                    </div>
+                    <div class="info-item-modal">
+                        <strong>E-posta:</strong> <span id="modal-gym-email"></span>
+                    </div>
+                    <div class="info-item-modal">
+                        <strong>Durum:</strong> <span id="modal-gym-status"></span>
+                    </div>
+                </div>
+
+                <form id="deleteGymForm" method="post" asp-action="DeleteGym">
+                    <input type="hidden" id="modal-gym-id" name="id" />
+                    @Html.AntiForgeryToken()
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="submit" form="deleteGymForm" class="btn btn-danger">Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const gymId = button.getAttribute('data-gym-id');
+                const gymName = button.getAttribute('data-gym-name');
+                const gymAddress = button.getAttribute('data-gym-address');
+                const gymPhone = button.getAttribute('data-gym-phone');
+                const gymEmail = button.getAttribute('data-gym-email');
+                const gymActive = button.getAttribute('data-gym-active') === 'True';
+
+                document.getElementById('modal-gym-id').value = gymId;
+                document.getElementById('modal-gym-name').textContent = gymName;
+                document.getElementById('modal-gym-address').textContent = gymAddress;
+                document.getElementById('modal-gym-phone').textContent = gymPhone;
+                document.getElementById('modal-gym-email').textContent = gymEmail;
+                
+                const statusSpan = document.getElementById('modal-gym-status');
+                if (gymActive) {
+                    statusSpan.innerHTML = '<span class="badge bg-success">Aktif</span>';
+                } else {
+                    statusSpan.innerHTML = '<span class="badge bg-secondary">Pasif</span>';
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    .admin-content-full {
+        width: 100%;
+    }
+
+    .admin-header h2 {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-header .text-muted {
+        color: var(--text-light);
+    }
+
+    .gyms-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 2rem;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+
+    .delete-info-modal {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .info-item-modal {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: #1e293b;
+    }
+
+    .info-item-modal:last-child {
+        border-bottom: none;
+    }
+
+    .info-item-modal strong {
+        color: #64748b;
+        margin-right: 0.5rem;
+        font-weight: 600;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-footer {
+        border-radius: 0 0 16px 16px;
+    }
+</style>
+

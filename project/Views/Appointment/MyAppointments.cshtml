@@ -1,0 +1,134 @@
+@model IEnumerable<proje.Models.Appointment>
+@{
+    ViewData["Title"] = "Randevularım";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1400px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>Randevularım</h2>
+                            <p class="text-muted">Randevularınızı görüntüleyin ve yönetin</p>
+                        </div>
+                        <a href="@Url.Action("Create", "Appointment")" class="btn btn-primary">
+                            <span>+</span> Yeni Randevu Al
+                        </a>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <div class="appointments-table-card">
+                    @if (Model != null && Model.Any())
+                    {
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Saat</th>
+                                    <th>Antrenör</th>
+                                    <th>Spor Salonu</th>
+                                    <th>Hizmet</th>
+                                    <th>Süre</th>
+                                    <th>Ücret</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var appointment in Model)
+                                {
+                                    <tr>
+                                        <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
+                                        <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
+                                        <td style="color: #64748b;">@appointment.Trainer?.FullName</td>
+                                        <td style="color: #64748b;">@appointment.Trainer?.Gym?.Name</td>
+                                        <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
+                                        <td style="color: #64748b;">@appointment.Duration dakika</td>
+                                        <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                        <td>
+                                            @switch (appointment.Status)
+                                            {
+                                                case "Pending":
+                                                    <span class="badge bg-warning">Beklemede</span>
+                                                    break;
+                                                case "Approved":
+                                                    <span class="badge bg-success">Onaylandı</span>
+                                                    break;
+                                                case "Rejected":
+                                                    <span class="badge bg-danger">Reddedildi</span>
+                                                    break;
+                                                case "Completed":
+                                                    <span class="badge bg-info">Tamamlandı</span>
+                                                    break;
+                                                case "Cancelled":
+                                                    <span class="badge bg-secondary">İptal Edildi</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@appointment.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-5">
+                            <p>Henüz randevunuz bulunmamaktadır.</p>
+                            <a href="@Url.Action("Create", "Appointment")" class="btn btn-primary">İlk Randevunuzu Oluşturun</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .appointments-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 2rem;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+</style>
+

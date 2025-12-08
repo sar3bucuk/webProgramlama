@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = "Admin Oluştur";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Admin Kullanıcısı Oluştur</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Admin kullanıcısını oluşturmak için aşağıdaki butona tıklayın.</p>
+                    <p class="alert alert-info">
+                        <strong>Varsayılan Admin Bilgileri:</strong><br>
+                        Email: <code>g231210012@sakarya.edu.tr</code><br>
+                        Şifre: <code>sau</code>
+                    </p>
+                    
+                    <button id="createAdminBtn" class="btn btn-primary btn-lg w-100">
+                        Admin Kullanıcısı Oluştur
+                    </button>
+                    
+                    <div id="result" class="mt-4"></div>
+                </div>
+            </div>
+            
+            <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h5>Giriş Yap</h5>
+                    <p>Admin kullanıcısı oluşturduktan sonra giriş yapabilirsiniz:</p>
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-success">
+                        Giriş Sayfasına Git
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('createAdminBtn').addEventListener('click', async function() {
+            const btn = this;
+            const resultDiv = document.getElementById('result');
+            
+            btn.disabled = true;
+            btn.textContent = 'Oluşturuluyor...';
+            resultDiv.innerHTML = '<div class="alert alert-info">İşlem devam ediyor...</div>';
+            
+            try {
+                const response = await fetch('@Url.Action("CreateAdmin", "Seed")');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="alert alert-success">
+                        <h5>✅ Başarılı!</h5>
+                        <p>${data.message}</p>
+                        <p><strong>Giriş bilgileri:</strong></p>
+                        <ul>
+                            <li>Email: <code>g231210012@sakarya.edu.tr</code></li>
+                            <li>Şifre: <code>sau</code></li>
+                        </ul>
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-success mt-2">
+                            Giriş Yap
+                        </a>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger">
+                        <h5>❌ Hata!</h5>
+                        <p>${data.message}</p>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">
+                    <h5>❌ Hata!</h5>
+                    <p>Bir hata oluştu: ${error.message}</p>
+                </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Admin Kullanıcısı Oluştur';
+            }
+        });
+    </script>
+}
+

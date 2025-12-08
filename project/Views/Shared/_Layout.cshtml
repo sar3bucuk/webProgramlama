@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - sar3bucuk</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar-header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="brand-logo">sar3bucuk</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 justify-content-center">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin Paneli
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Gyms">🏋️ Spor Salonları</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Members">👥 Üyeler</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Trainers">👨‍🏫 Antrenörler</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Appointments">📅 Randevular</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Services" asp-action="Index">⚙️ Hizmetler</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else if (User.Identity?.IsAuthenticated == true && User.IsInRole("Trainer"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Trainer" asp-action="Index">Antrenör Paneli</a>
+                            </li>
+                        }
+                        else if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin") && !User.IsInRole("Trainer"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Appointment" asp-action="MyAppointments">📅 Randevularım</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Appointment" asp-action="Create">➕ Randevu Al</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="#services">Hizmetler</a>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact">İletişim</a>
+                        </li>
+                    </ul>
+                    <div class="navbar-actions">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Trainer"))
+                            {
+                                <a class="btn btn-outline-primary me-2" asp-controller="Trainer" asp-action="Index">Profil</a>
+                            }
+                            else if (User.IsInRole("Admin"))
+                            {
+                                <a class="btn btn-outline-primary me-2" asp-controller="Admin" asp-action="Index">Admin Paneli</a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-outline-primary me-2" asp-controller="Appointment" asp-action="MyAppointments">Randevularım</a>
+                            }
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-primary">Çıkış Yap</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-primary me-2" asp-area="" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+                            <a class="btn btn-primary" asp-area="" asp-controller="Account" asp-action="Register">Kayıt Ol</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="pb-0">
+        @RenderBody()
+    </main>
+
+    <footer class="footer-section" id="contact">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>sar3bucuk</h5>
+                    <p>Modern ekipmanlar ve uzman antrenörlerle sağlıklı yaşam yolculuğunuza bizimle başlayın.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Hızlı Bağlantılar</h5>
+                    <ul class="footer-links">
+                        <li><a href="#services">Hizmetler</a></li>
+                        <li><a href="#contact">İletişim</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>İletişim</h5>
+                    <p>Email: info@sar3bucuk.com</p>
+                    <p>Tel: +90 (555) 123 45 67</p>
+                    <p>Adres: Örnek Mahallesi, Spor Caddesi No:123</p>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="text-center">
+                <p>&copy; @DateTime.Now.Year sar3bucuk. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

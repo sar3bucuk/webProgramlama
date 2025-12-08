@@ -1,0 +1,194 @@
+@model proje.Models.Trainer
+@{
+    ViewData["Title"] = "Bilgilerimi Düzenle";
+    Layout = "_Layout";
+    var services = ViewBag.Services as IEnumerable<proje.Models.Service> ?? new List<proje.Models.Service>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Bilgilerimi Düzenle</h2>
+                <p class="auth-subtitle-modern">Kişisel bilgilerinizi güncelleyin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Edit" method="post" class="auth-form-modern" id="editTrainerForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="GymId" />
+                <input type="hidden" asp-for="IsActive" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="form-group-modern">
+                    <label asp-for="FirstName" class="form-label-modern">Ad</label>
+                    <input asp-for="FirstName" class="form-control-modern" placeholder="Örn: Ahmet" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="LastName" class="form-label-modern">Soyad</label>
+                    <input asp-for="LastName" class="form-control-modern" placeholder="Örn: Yılmaz" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="Phone" class="form-label-modern">Telefon</label>
+                            <input asp-for="Phone" class="form-control-modern" placeholder="Örn: 0264 123 45 67" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="form-label-modern">E-posta</label>
+                    <input type="email" class="form-control-modern" value="@(Model.User?.Email ?? Model.Email ?? "-")" readonly />
+                    <small class="text-muted">E-posta adresi giriş ve iletişim için kullanılır. Değiştirmek için admin ile iletişime geçin.</small>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="form-label-modern">Spor Salonu</label>
+                    <input type="text" class="form-control-modern" value="@(Model.Gym?.Name ?? "Henüz atanmamış")" readonly />
+                    <small class="text-muted">Spor salonu değişikliği için admin ile iletişime geçin.</small>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="ExperienceYears" class="form-label-modern">Deneyim Yılı</label>
+                    <input asp-for="ExperienceYears" type="number" class="form-control-modern" min="0" />
+                    <span asp-validation-for="ExperienceYears" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Bio" class="form-label-modern">Biyografi</label>
+                    <textarea asp-for="Bio" class="form-control-modern" rows="4" placeholder="Hakkınızda bilgi yazın..."></textarea>
+                    <span asp-validation-for="Bio" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("Index", "Trainer")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Güncelle</button>
+                </div>
+            </form>
+
+            <!-- Hizmetler Bölümü (Sadece Görüntüleme) -->
+            <div class="services-section">
+                <div class="services-header">
+                    <h3>Verdiğim Hizmetler</h3>
+                </div>
+
+                <div class="services-list">
+                    @if (Model.TrainerServices != null && Model.TrainerServices.Any())
+                    {
+                        @foreach (var trainerService in Model.TrainerServices)
+                        {
+                            <div class="service-item">
+                                <div class="service-info">
+                                    <h5>@trainerService.Service?.Name</h5>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz hizmet atanmamış.</p>
+                    }
+                </div>
+                <p class="text-muted" style="margin-top: 1rem; font-size: 0.875rem;">
+                    Hizmet ekleme/çıkarma işlemleri için admin ile iletişime geçin.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+
+    .services-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .services-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .services-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .services-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .service-item {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .service-info h5 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    textarea.form-control-modern {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .text-muted {
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+</style>
+

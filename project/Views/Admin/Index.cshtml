@@ -1,0 +1,269 @@
+@{
+    ViewData["Title"] = "Admin Paneli";
+    Layout = "_Layout";
+    var gymStats = ViewBag.GymStats;
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>Admin Paneli</h2>
+                            <p class="text-muted">Spor salonları genel bilgileri</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Spor Salonları Listesi -->
+                <div class="gym-stats-section">
+                    <div class="gym-stats-table-card">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Spor Salonu</th>
+                                    <th>Durum</th>
+                                    <th>Üye Sayısı</th>
+                                    <th>Antrenör Sayısı</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var gymStatsList = ViewBag.GymStats as System.Collections.IEnumerable;
+                                }
+                                @if (gymStatsList != null)
+                                {
+                                    bool hasItems = false;
+                                    @foreach (dynamic gym in gymStatsList)
+                                    {
+                                        hasItems = true;
+                                        <tr>
+                                            <td>
+                                                <strong style="color: #1e293b; font-size: 1.1rem;">@gym.GymName</strong>
+                                            </td>
+                                            <td>
+                                                @if (gym.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Aktif</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Pasif</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="stat-badge">
+                                                    <i class="bi bi-people"></i>
+                                                    <span class="stat-number">@gym.MemberCount</span>
+                                                    <span class="stat-label">Üye</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="stat-badge">
+                                                    <i class="bi bi-person-badge"></i>
+                                                    <span class="stat-number">@gym.TrainerCount</span>
+                                                    <span class="stat-label">Antrenör</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("GymDetails", "Admin", new { id = gym.GymId })" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i> Detaylar
+                                                </a>
+                                                <a href="@Url.Action("EditGym", "Admin", new { id = gym.GymId })" 
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-pencil"></i> Düzenle
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!hasItems)
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                Henüz spor salonu bulunmamaktadır.
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            Henüz spor salonu bulunmamaktadır.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Hızlı Erişim Butonları -->
+                <div class="quick-access-section">
+                    <h3 class="section-title">Hızlı Erişim</h3>
+                    <div class="quick-access-buttons">
+                        <a href="@Url.Action("Gyms", "Admin")" class="btn btn-primary">
+                            <i class="bi bi-building"></i> Spor Salonları Yönet
+                        </a>
+                        <a href="@Url.Action("Members", "Admin")" class="btn btn-success">
+                            <i class="bi bi-people"></i> Üyeler
+                        </a>
+                        <a href="@Url.Action("Trainers", "Admin")" class="btn btn-warning">
+                            <i class="bi bi-person-badge"></i> Antrenörler
+                        </a>
+                        <a href="@Url.Action("Index", "Services")" class="btn btn-info">
+                            <i class="bi bi-gear"></i> Hizmetler
+                        </a>
+                        <a href="@Url.Action("Appointments", "Admin")" class="btn btn-purple">
+                            <i class="bi bi-calendar-check"></i> Randevular
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-content-full {
+        width: 100%;
+    }
+
+    .admin-header h2 {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-header .text-muted {
+        color: var(--text-light);
+    }
+
+    .gym-stats-section {
+        margin-top: 2rem;
+    }
+
+    .gym-stats-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+        padding: 1rem;
+    }
+
+    .table tbody td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .stat-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-badge i {
+        font-size: 1.25rem;
+        color: #64748b;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .badge {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+
+    .quick-access-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .section-title {
+        color: #1e293b;
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quick-access-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .quick-access-buttons .btn {
+        flex: 1;
+        min-width: 150px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .quick-access-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-purple {
+        background-color: #8b5cf6;
+        border-color: #8b5cf6;
+        color: white;
+    }
+
+    .btn-purple:hover {
+        background-color: #7c3aed;
+        border-color: #7c3aed;
+        color: white;
+    }
+</style>

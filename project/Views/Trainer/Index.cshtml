@@ -1,0 +1,230 @@
+@model proje.Models.Trainer
+@{
+    ViewData["Title"] = "Antrenör Paneli";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Antrenör Paneli</h2>
+                <p class="auth-subtitle-modern">Bilgilerinizi görüntüleyin ve düzenleyin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="trainer-profile-section">
+                <div class="profile-header">
+                    <h3>Kişisel Bilgiler</h3>
+                    <a href="@Url.Action("Edit", "Trainer")" class="btn btn-primary btn-sm">Düzenle</a>
+                </div>
+
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <strong>Ad Soyad:</strong>
+                        <span>@Model.FullName</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>E-posta:</strong>
+                        <span>@(Model.User?.Email ?? Model.Email ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Telefon:</strong>
+                        <span>@(Model.Phone ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Spor Salonu:</strong>
+                        @if (Model.Gym != null)
+                        {
+                            <span class="trainer-gym-badge">@Model.Gym.Name</span>
+                        }
+                        else
+                        {
+                            <span style="color: #64748b;">Henüz atanmamış</span>
+                        }
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Deneyim Yılı:</strong>
+                        <span>@Model.ExperienceYears yıl</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Durum:</strong>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Pasif</span>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Bio))
+                {
+                    <div class="profile-bio">
+                        <strong>Biyografi:</strong>
+                        <p>@Model.Bio</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Hizmetler Bölümü -->
+            <div class="services-section">
+                <div class="services-header">
+                    <h3>Verdiğim Hizmetler</h3>
+                </div>
+
+                <div class="services-list">
+                    @if (Model.TrainerServices != null && Model.TrainerServices.Any())
+                    {
+                        @foreach (var trainerService in Model.TrainerServices)
+                        {
+                            <div class="service-item">
+                                <div class="service-info">
+                                    <h5>@trainerService.Service?.Name</h5>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz hizmet atanmamış.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .trainer-profile-section {
+        margin-top: 2rem;
+    }
+
+    .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .profile-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .profile-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .profile-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .profile-info-item strong {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .profile-info-item span {
+        color: var(--text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .trainer-gym-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .profile-bio {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .profile-bio strong {
+        display: block;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+    }
+
+    .profile-bio p {
+        margin: 0;
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+
+    .services-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .services-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .services-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .services-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .service-item {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .service-info h5 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+</style>
+

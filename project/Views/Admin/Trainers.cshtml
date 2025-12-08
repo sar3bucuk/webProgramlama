@@ -1,0 +1,298 @@
+@model IEnumerable<proje.Models.Trainer>
+@{
+    ViewData["Title"] = "Antrenörler Yönetimi";
+    Layout = "_Layout";
+    var gyms = ViewBag.Gyms as IEnumerable<proje.Models.Gym> ?? new List<proje.Models.Gym>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1400px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>Antrenörler</h2>
+                            <p class="text-muted">Antrenörleri yönetin ve bilgilerini düzenleyin</p>
+                        </div>
+                        <a href="@Url.Action("CreateTrainer", "Admin")" class="btn btn-primary">
+                            <span>+</span> Yeni Antrenör Ekle
+                        </a>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <div class="trainers-table-card">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>E-posta</th>
+                                <th>Telefon</th>
+                                <th>Spor Salonu</th>
+                                <th>Hizmetler</th>
+                                <th>Deneyim</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var trainer in Model)
+                                {
+                                    <tr>
+                                        <td><strong style="color: #1e293b;">@trainer.FullName</strong></td>
+                                        <td style="color: #64748b;">@(trainer.User?.Email ?? trainer.Email ?? "-")</td>
+                                        <td style="color: #64748b;">@(trainer.Phone ?? "-")</td>
+                                        <td>
+                                            @if (trainer.Gym != null)
+                                            {
+                                                <span class="trainer-gym-badge">@trainer.Gym.Name</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #64748b; font-size: 0.875rem;">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (trainer.TrainerServices != null && trainer.TrainerServices.Any())
+                                            {
+                                                <div class="trainer-services-list">
+                                                    @foreach (var ts in trainer.TrainerServices.Take(3))
+                                                    {
+                                                        <span class="service-badge">@ts.Service?.Name</span>
+                                                    }
+                                                    @if (trainer.TrainerServices.Count > 3)
+                                                    {
+                                                        <span class="service-badge">+@(trainer.TrainerServices.Count - 3)</span>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #64748b; font-size: 0.875rem;">Hizmet yok</span>
+                                            }
+                                        </td>
+                                        <td style="color: #64748b;">@trainer.ExperienceYears yıl</td>
+                                        <td>
+                                            @if (trainer.IsActive)
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Pasif</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <a href="@Url.Action("EditTrainer", "Admin", new { id = trainer.Id })" class="btn btn-sm btn-outline-primary">
+                                                    Düzenle
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteTrainerModal"
+                                                        data-trainer-id="@trainer.Id"
+                                                        data-trainer-name="@trainer.FullName"
+                                                        data-trainer-email="@(trainer.User?.Email ?? trainer.Email ?? "-")"
+                                                        data-trainer-gym="@(trainer.Gym?.Name ?? "-")">
+                                                    Sil
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        Henüz antrenör bulunmamaktadır.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-content-full {
+        width: 100%;
+    }
+
+    .admin-header h2 {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-header .text-muted {
+        color: var(--text-light);
+    }
+
+    .trainers-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 2rem;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .trainer-gym-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .trainer-services-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .service-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+</style>
+
+<!-- Delete Trainer Confirmation Modal -->
+<div class="modal fade" id="deleteTrainerModal" tabindex="-1" aria-labelledby="deleteTrainerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
+                <h5 class="modal-title" id="deleteTrainerModalLabel">
+                    <span style="font-size: 1.5rem;">⚠️</span> Antrenör Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uyarı!</strong> Bu işlem geri alınamaz. Antrenör ve tüm ilişkili veriler (hizmetler, randevular) silinecektir.
+                </div>
+
+                <div class="delete-info-modal">
+                    <h6 style="margin-bottom: 1rem; color: #1e293b; font-weight: 600;">Silmek istediğiniz antrenör:</h6>
+                    <div class="info-item-modal">
+                        <strong>Ad Soyad:</strong> <span id="modal-trainer-name"></span>
+                    </div>
+                    <div class="info-item-modal">
+                        <strong>E-posta:</strong> <span id="modal-trainer-email"></span>
+                    </div>
+                    <div class="info-item-modal">
+                        <strong>Spor Salonu:</strong> <span id="modal-trainer-gym"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(226, 232, 240, 0.8);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteTrainerForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <span>🗑️</span> Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteModal = document.getElementById('deleteTrainerModal');
+        const deleteForm = document.getElementById('deleteTrainerForm');
+        
+        let currentTrainerId = null;
+        
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            currentTrainerId = button.getAttribute('data-trainer-id');
+            const trainerName = button.getAttribute('data-trainer-name');
+            const trainerEmail = button.getAttribute('data-trainer-email');
+            const trainerGym = button.getAttribute('data-trainer-gym');
+            
+            document.getElementById('modal-trainer-name').textContent = trainerName;
+            document.getElementById('modal-trainer-email').textContent = trainerEmail;
+            document.getElementById('modal-trainer-gym').textContent = trainerGym;
+        });
+        
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentTrainerId) {
+                alert('Antrenör ID bulunamadı.');
+                return;
+            }
+            
+            const formData = new FormData(deleteForm);
+            const actionUrl = '@Url.Action("DeleteTrainer", "Admin")?id=' + currentTrainerId;
+            
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': formData.get('__RequestVerificationToken')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(deleteModal);
+                    modal.hide();
+                    
+                    // Sayfayı yenile
+                    window.location.reload();
+                } else {
+                    alert('Hata: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+            });
+        });
+    });
+</script>
+

@@ -1,0 +1,609 @@
+@model proje.Models.Gym
+@{
+    ViewData["Title"] = "Spor Salonu Düzenle";
+    Layout = "_Layout";
+    var services = ViewBag.Services as IEnumerable<proje.Models.Service> ?? new List<proje.Models.Service>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Spor Salonu Düzenle</h2>
+                <p class="auth-subtitle-modern">Spor salonu bilgilerini ve hizmetlerini yönetin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="EditGym" method="post" class="auth-form-modern" id="editGymForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Name" class="form-label-modern">Spor Salonu Adı</label>
+                    <input asp-for="Name" class="form-control-modern" placeholder="Örn: sar3bucuk Spor Salonu" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Address" class="form-label-modern">Adres</label>
+                    <input asp-for="Address" class="form-control-modern" placeholder="Örn: Örnek Mahallesi, Spor Caddesi No:123" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="Phone" class="form-label-modern">Telefon</label>
+                            <input asp-for="Phone" class="form-control-modern" placeholder="Örn: 0264 123 45 67" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="Email" class="form-label-modern">E-posta</label>
+                            <input asp-for="Email" type="email" class="form-control-modern" placeholder="Örn: info@sar3bucuk.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="OpeningTime" class="form-label-modern">Açılış Saati</label>
+                            <input asp-for="OpeningTime" type="time" class="form-control-modern" />
+                            <span asp-validation-for="OpeningTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="ClosingTime" class="form-label-modern">Kapanış Saati</label>
+                            <input asp-for="ClosingTime" type="time" class="form-control-modern" />
+                            <span asp-validation-for="ClosingTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern form-check-modern">
+                    <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" />
+                    <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("Gyms", "Admin")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Güncelle</button>
+                </div>
+            </form>
+
+            <!-- Hizmet Yönetimi Bölümü -->
+            <div class="services-section">
+                <div class="services-header">
+                    <h3>Hizmetler</h3>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                        <span>+</span> Yeni Hizmet Ekle
+                    </button>
+                </div>
+
+                <div class="services-list">
+                    @if (Model.GymServices != null && Model.GymServices.Any())
+                    {
+                        @foreach (var gymService in Model.GymServices)
+                        {
+                            <div class="service-item" data-gym-service-id="@gymService.Id">
+                                <div class="service-info">
+                                    <h5>@gymService.Service?.Name</h5>
+                                    <div class="service-details">
+                                        <span><strong>Süre:</strong> @gymService.Duration dakika</span>
+                                        <span><strong>Ücret:</strong> @gymService.Price.ToString("C")</span>
+                                        <span>
+                                            <strong>Durum:</strong> 
+                                            @if (gymService.IsActive)
+                                            {
+                                                <span class="service-status-badge service-status-active">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="service-status-badge service-status-inactive">Pasif</span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="service-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-gym-service-id="@gymService.Id"
+                                            data-service-id="@gymService.ServiceId"
+                                            data-service-name="@(gymService.Service?.Name ?? "")"
+                                            data-duration="@gymService.Duration"
+                                            data-price="@gymService.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                            data-is-active="@gymService.IsActive.ToString().ToLower()"
+                                            onclick="editGymService(this)">
+                                        Düzenle
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteServiceModal"
+                                            data-gym-service-id="@gymService.Id"
+                                            data-service-name="@(gymService.Service?.Name ?? "")">
+                                        Sil
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz hizmet eklenmemiş.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizmet Ekleme Modal -->
+<div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addServiceModalLabel">Yeni Hizmet Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addServiceForm">
+                    <input type="hidden" id="gymId" value="@Model.Id" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Hizmet</label>
+                        <select id="serviceId" class="form-control-modern" required>
+                            <option value="">Hizmet Seçin</option>
+                            @foreach (var service in services)
+                            {
+                                <option value="@service.Id">@service.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Süre (Dakika)</label>
+                                <input type="number" id="duration" class="form-control-modern" min="1" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Ücret (₺)</label>
+                                <input type="number" id="price" class="form-control-modern" step="0.01" min="0" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group-modern form-check-modern">
+                        <input type="checkbox" id="isActive" class="form-check-input-modern" checked />
+                        <label class="form-check-label-modern" for="isActive">Aktif</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="addGymService()">Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizmet Düzenleme Modal -->
+<div class="modal fade" id="editServiceModal" tabindex="-1" aria-labelledby="editServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editServiceModalLabel">Hizmet Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editServiceForm">
+                    <input type="hidden" id="editGymServiceId" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Hizmet</label>
+                        <input type="text" id="editServiceName" class="form-control-modern" readonly />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Süre (Dakika)</label>
+                                <input type="number" id="editDuration" class="form-control-modern" min="1" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Ücret (₺)</label>
+                                <input type="number" id="editPrice" class="form-control-modern" step="0.01" min="0" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group-modern form-check-modern">
+                        <input type="checkbox" id="editIsActive" class="form-check-input-modern" />
+                        <label class="form-check-label-modern" for="editIsActive">Aktif</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="updateGymService()">Güncelle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizmet Silme Onay Modal -->
+<div class="modal fade" id="deleteServiceModal" tabindex="-1" aria-labelledby="deleteServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
+                <h5 class="modal-title" id="deleteServiceModalLabel">
+                    <span style="font-size: 1.5rem;">⚠️</span> Hizmet Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uyarı!</strong> Bu işlem geri alınamaz. Hizmet ve tüm ilişkili randevular silinecektir.
+                </div>
+
+                <div class="delete-info-modal">
+                    <p style="margin: 0; color: #1e293b; font-weight: 600;">
+                        <strong>"<span id="deleteServiceName"></span>"</strong> hizmetini silmek istediğinizden emin misiniz?
+                    </p>
+                </div>
+
+                <input type="hidden" id="deleteGymServiceId" />
+            </div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteGymService()">Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function addGymService() {
+            const gymId = document.getElementById('gymId').value;
+            const serviceId = document.getElementById('serviceId').value;
+            const duration = document.getElementById('duration').value;
+            // Virgülü noktaya çevir ve parse et
+            const priceInput = document.getElementById('price').value.replace(',', '.');
+            const price = parseFloat(priceInput);
+            const isActive = document.getElementById('isActive').checked;
+
+            if (!serviceId || !duration || !price || isNaN(price)) {
+                alert('Lütfen tüm alanları doğru şekilde doldurun.');
+                return;
+            }
+
+            // Nokta ile formatla (InvariantCulture)
+            const priceFormatted = price.toFixed(2).replace(',', '.');
+
+            const token = document.querySelector('#editGymForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("AddGymService", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    gymId: gymId,
+                    serviceId: serviceId,
+                    duration: duration,
+                    price: priceFormatted,
+                    isActive: isActive
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet eklenirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function editGymService(button) {
+            const id = button.getAttribute('data-gym-service-id');
+            const serviceId = button.getAttribute('data-service-id');
+            const serviceName = button.getAttribute('data-service-name');
+            const duration = button.getAttribute('data-duration');
+            const price = parseFloat(button.getAttribute('data-price'));
+            const isActive = button.getAttribute('data-is-active') === 'true';
+            
+            document.getElementById('editGymServiceId').value = id;
+            document.getElementById('editServiceName').value = serviceName;
+            document.getElementById('editDuration').value = duration;
+            document.getElementById('editPrice').value = price.toFixed(2);
+            document.getElementById('editIsActive').checked = isActive;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editServiceModal'));
+            modal.show();
+        }
+
+        function updateGymService() {
+            const id = document.getElementById('editGymServiceId').value;
+            const duration = parseInt(document.getElementById('editDuration').value);
+            // Virgülü noktaya çevir ve parse et
+            const priceInput = document.getElementById('editPrice').value.replace(',', '.');
+            const price = parseFloat(priceInput);
+            const isActive = document.getElementById('editIsActive').checked;
+
+            if (!duration || isNaN(duration) || !price || isNaN(price)) {
+                alert('Lütfen tüm alanları doğru şekilde doldurun.');
+                return;
+            }
+
+            // Nokta ile formatla (InvariantCulture)
+            const priceFormatted = price.toFixed(2).replace(',', '.');
+
+            const token = document.querySelector('#editGymForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("UpdateGymService", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: id,
+                    duration: duration,
+                    price: priceFormatted,
+                    isActive: isActive
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet güncellenirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        // Silme modal'ını aç
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteModal = document.getElementById('deleteServiceModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const gymServiceId = button.getAttribute('data-gym-service-id');
+                    const serviceName = button.getAttribute('data-service-name');
+                    
+                    document.getElementById('deleteGymServiceId').value = gymServiceId;
+                    document.getElementById('deleteServiceName').textContent = serviceName;
+                });
+            }
+        });
+
+        function confirmDeleteGymService() {
+            const id = document.getElementById('deleteGymServiceId').value;
+
+            const token = document.querySelector('#editGymForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("DeleteGymService", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Modal'ı kapat
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteServiceModal'));
+                    modal.hide();
+                    // Sayfayı yenile
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet silinirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+    </script>
+}
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .form-actions-modern .btn-auth-modern {
+        flex: 1;
+        text-align: center;
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+
+    .services-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .services-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .services-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .services-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .service-item {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .service-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .service-info h5 {
+        margin: 0 0 0.75rem 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .service-details {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .service-details span {
+        color: var(--text-light);
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+
+    .service-details strong {
+        color: var(--text-dark);
+        margin-right: 0.25rem;
+    }
+
+    .service-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .service-status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .service-status-active {
+        background: rgba(34, 197, 94, 0.15);
+        color: #16a34a;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .service-status-inactive {
+        background: rgba(148, 163, 184, 0.15);
+        color: #64748b;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .modal-footer {
+        border-radius: 0 0 16px 16px;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .delete-info-modal {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    @@media (max-width: 768px) {
+        .service-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .service-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .services-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>

@@ -1,0 +1,344 @@
+@model IEnumerable<proje.Models.Member>
+@{
+    ViewData["Title"] = "Üyeler Yönetimi";
+    Layout = "_Layout";
+    var gyms = ViewBag.Gyms as IEnumerable<proje.Models.Gym> ?? new List<proje.Models.Gym>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1400px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>Üyeler</h2>
+                            <p class="text-muted">Üyeleri yönetin ve spor salonlarına bağlayın</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Filtreleme ve Arama Formu -->
+                <div class="members-filter-card">
+                    <form method="get" action="@Url.Action("Members", "Admin")" class="filter-form">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label-modern">İsme Göre Ara</label>
+                                <input type="text" name="searchName" class="form-control-modern" 
+                                       value="@ViewBag.SearchName" 
+                                       placeholder="Ad veya soyad ile ara...">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label-modern">Spor Salonuna Göre Filtrele</label>
+                                <select name="gymId" class="form-control-modern">
+                                    <option value="">Tümü</option>
+                                    @{
+                                        var selectedGymId = ViewBag.SelectedGymId?.ToString();
+                                    }
+                                    @if (selectedGymId == "0")
+                                    {
+                                        <option value="0" selected>Bağlı Değil</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="0">Bağlı Değil</option>
+                                    }
+                                    @foreach (var gym in gyms)
+                                    {
+                                        @if (selectedGymId == gym.Id.ToString())
+                                        {
+                                            <option value="@gym.Id" selected>@gym.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@gym.Id">@gym.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100" style="height: 42px;">Filtrele</button>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(ViewBag.SearchName?.ToString()) || (ViewBag.SelectedGymId != null))
+                        {
+                            <div class="mt-2">
+                                <a href="@Url.Action("Members", "Admin")" class="btn btn-sm btn-outline-secondary">Filtreleri Temizle</a>
+                            </div>
+                        }
+                    </form>
+                </div>
+
+                <div class="members-table-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-0" style="color: #1e293b;">Toplam Üye: <span class="text-primary">@Model.Count()</span></h5>
+                        </div>
+                    </div>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>E-posta</th>
+                                <th>Telefon</th>
+                                <th>Spor Salonu</th>
+                                <th>Oluşturulma Tarihi</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var member in Model)
+                                {
+                                    <tr>
+                                        <td><strong style="color: #1e293b;">@member.FullName</strong></td>
+                                        <td style="color: #64748b;">@(member.User?.Email ?? "-")</td>
+                                        <td style="color: #64748b;">@(member.Phone ?? "-")</td>
+                                        <td>
+                                            <span class="member-gym-badge" data-member-id="@member.Id" data-current-gym-id="@(member.GymId?.ToString() ?? "0")">
+                                                @(member.Gym?.Name ?? "Bağlı değil")
+                                            </span>
+                                        </td>
+                                        <td style="color: #64748b;">@member.CreatedDate.ToString("dd.MM.yyyy")</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editMemberModal"
+                                                    data-member-id="@member.Id"
+                                                    data-member-name="@member.FullName"
+                                                    data-member-email="@(member.User?.Email ?? "-")"
+                                                    data-member-phone="@(member.Phone ?? "-")"
+                                                    data-current-gym-id="@(member.GymId?.ToString() ?? "0")"
+                                                    data-current-gym-name="@(member.Gym?.Name ?? "")">
+                                                Düzenle
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        Henüz üye bulunmamaktadır.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+<!-- Üye Düzenleme Modal -->
+<div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editMemberModalLabel">Üye Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editMemberForm">
+                    <input type="hidden" id="editMemberId" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Ad Soyad</label>
+                        <input type="text" id="editMemberName" class="form-control-modern" readonly />
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">E-posta</label>
+                        <input type="email" id="editMemberEmail" class="form-control-modern" readonly />
+                        <small class="text-muted">E-posta adresi düzenlenemez.</small>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Telefon</label>
+                        <input type="text" id="editMemberPhone" class="form-control-modern" readonly />
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Spor Salonu</label>
+                        <select id="editGymId" class="form-control-modern">
+                            <option value="0">Bağlantıyı Kaldır</option>
+                            @foreach (var gym in gyms)
+                            {
+                                <option value="@gym.Id">@gym.Name</option>
+                            }
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="updateMember()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const editModal = document.getElementById('editMemberModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const memberId = button.getAttribute('data-member-id');
+                const memberName = button.getAttribute('data-member-name');
+                const memberEmail = button.getAttribute('data-member-email');
+                const memberPhone = button.getAttribute('data-member-phone');
+                const currentGymId = button.getAttribute('data-current-gym-id');
+                
+                document.getElementById('editMemberId').value = memberId;
+                document.getElementById('editMemberName').value = memberName;
+                document.getElementById('editMemberEmail').value = memberEmail;
+                document.getElementById('editMemberPhone').value = memberPhone;
+                document.getElementById('editGymId').value = currentGymId || '0';
+            });
+        }
+    });
+
+    function updateMember() {
+        const memberId = document.getElementById('editMemberId').value;
+        const gymId = document.getElementById('editGymId').value;
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        
+        fetch('@Url.Action("UpdateMemberGym", "Admin")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: new URLSearchParams({
+                memberId: memberId,
+                gymId: gymId || '0'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editMemberModal'));
+                modal.hide();
+                location.reload();
+            } else {
+                alert(data.message || 'Üye güncellenirken bir hata oluştu.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+</script>
+
+<style>
+    .admin-content-full {
+        width: 100%;
+    }
+
+    .admin-header h2 {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-header .text-muted {
+        color: var(--text-light);
+    }
+
+    .members-filter-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .filter-form .form-label-modern {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-form .form-control-modern {
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 8px;
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .filter-form .form-control-modern:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .members-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 1rem;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .member-gym-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .modal-footer {
+        border-radius: 0 0 16px 16px;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+</style>
+

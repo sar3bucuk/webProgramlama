@@ -1,0 +1,670 @@
+@model proje.Models.Trainer
+@{
+    ViewData["Title"] = "Antrenör Düzenle";
+    Layout = "_Layout";
+    var gyms = ViewBag.Gyms as IEnumerable<proje.Models.Gym> ?? new List<proje.Models.Gym>();
+    var services = ViewBag.Services as IEnumerable<proje.Models.Service> ?? new List<proje.Models.Service>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Antrenör Düzenle</h2>
+                <p class="auth-subtitle-modern">Antrenör bilgilerini ve hizmetlerini yönetin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="EditTrainer" method="post" class="auth-form-modern" id="editTrainerForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="UserId" />
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="form-group-modern">
+                    <label asp-for="FirstName" class="form-label-modern">Ad</label>
+                    <input asp-for="FirstName" class="form-control-modern" placeholder="Örn: Ahmet" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="LastName" class="form-label-modern">Soyad</label>
+                    <input asp-for="LastName" class="form-control-modern" placeholder="Örn: Yılmaz" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="form-label-modern">E-posta</label>
+                    <input type="email" class="form-control-modern" value="@(Model.User?.Email ?? Model.Email ?? "-")" readonly />
+                    <small class="text-muted">E-posta adresi giriş ve iletişim için kullanılır. Değiştirmek için admin ile iletişime geçin.</small>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Phone" class="form-label-modern">Telefon</label>
+                    <input asp-for="Phone" class="form-control-modern" placeholder="Örn: 0264 123 45 67" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="GymId" class="form-label-modern">Spor Salonu</label>
+                    <select asp-for="GymId" class="form-control-modern" asp-items="@(new SelectList(gyms, "Id", "Name"))">
+                        <option value="">Spor Salonu Seçin</option>
+                    </select>
+                    <span asp-validation-for="GymId" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="ExperienceYears" class="form-label-modern">Deneyim Yılı</label>
+                            <input asp-for="ExperienceYears" type="number" class="form-control-modern" min="0" />
+                            <span asp-validation-for="ExperienceYears" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern form-check-modern" style="margin-top: 2rem;">
+                            <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" />
+                            <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Bio" class="form-label-modern">Biyografi</label>
+                    <textarea asp-for="Bio" class="form-control-modern" rows="4" placeholder="Antrenör hakkında bilgi yazın..."></textarea>
+                    <span asp-validation-for="Bio" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("Trainers", "Admin")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Güncelle</button>
+                </div>
+            </form>
+
+            <!-- Hizmet Yönetimi Bölümü -->
+            <div class="services-section">
+                <div class="services-header">
+                    <h3>Verdiği Hizmetler</h3>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTrainerServiceModal">
+                        <span>+</span> Yeni Hizmet Ekle
+                    </button>
+                </div>
+
+                <div class="services-list">
+                    @if (Model.TrainerServices != null && Model.TrainerServices.Any())
+                    {
+                        @foreach (var trainerService in Model.TrainerServices)
+                        {
+                            <div class="service-item" data-trainer-service-id="@trainerService.Id">
+                                <div class="service-info">
+                                    <h5>@trainerService.Service?.Name</h5>
+                                </div>
+                                <div class="service-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteTrainerServiceModal"
+                                            data-trainer-service-id="@trainerService.Id"
+                                            data-service-name="@trainerService.Service?.Name">
+                                        Sil
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz hizmet eklenmemiş.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Müsaitlik Saatleri Yönetimi Bölümü -->
+            <div class="availability-section">
+                <div class="availability-header">
+                    <h3>Müsaitlik Saatleri</h3>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAvailabilityModal">
+                        <span>+</span> Yeni Müsaitlik Ekle
+                    </button>
+                </div>
+
+                <div class="availability-list">
+                    @if (Model.TrainerAvailabilities != null && Model.TrainerAvailabilities.Any())
+                    {
+                        @foreach (var availability in Model.TrainerAvailabilities.OrderBy(a => a.DayOfWeek).ThenBy(a => a.StartTime))
+                        {
+                            <div class="availability-item" data-availability-id="@availability.Id">
+                                <div class="availability-info">
+                                    <h5>@availability.DayName</h5>
+                                    <p class="availability-time">
+                                        @availability.StartTime.ToString(@"hh\:mm") - @availability.EndTime.ToString(@"hh\:mm")
+                                    </p>
+                                    @if (!availability.IsAvailable)
+                                    {
+                                        <span class="badge bg-secondary">Pasif</span>
+                                    }
+                                </div>
+                                <div class="availability-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteAvailabilityModal"
+                                            data-availability-id="@availability.Id"
+                                            data-availability-day="@availability.DayName"
+                                            data-availability-time="@availability.StartTime.ToString(@"hh\:mm") - @availability.EndTime.ToString(@"hh\:mm")">
+                                        Sil
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz müsaitlik saati tanımlanmamış.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizmet Ekleme Modal -->
+<div class="modal fade" id="addTrainerServiceModal" tabindex="-1" aria-labelledby="addTrainerServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTrainerServiceModalLabel">Yeni Hizmet Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTrainerServiceForm">
+                    <input type="hidden" id="trainerId" value="@Model.Id" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Hizmet</label>
+                        <select id="trainerServiceId" class="form-control-modern" required>
+                            <option value="">Hizmet Seçin</option>
+                            @foreach (var service in services)
+                            {
+                                var isAlreadyAdded = Model.TrainerServices?.Any(ts => ts.ServiceId == service.Id) ?? false;
+                                if (!isAlreadyAdded)
+                                {
+                                    <option value="@service.Id">@service.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="addTrainerService()">Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Müsaitlik Ekleme Modal -->
+<div class="modal fade" id="addAvailabilityModal" tabindex="-1" aria-labelledby="addAvailabilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAvailabilityModalLabel">Yeni Müsaitlik Saati Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAvailabilityForm">
+                    <input type="hidden" id="availabilityTrainerId" value="@Model.Id" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Haftanın Günü</label>
+                        <select id="availabilityDayOfWeek" class="form-control-modern" required>
+                            <option value="">Gün Seçin</option>
+                            <option value="0">Pazar</option>
+                            <option value="1">Pazartesi</option>
+                            <option value="2">Salı</option>
+                            <option value="3">Çarşamba</option>
+                            <option value="4">Perşembe</option>
+                            <option value="5">Cuma</option>
+                            <option value="6">Cumartesi</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Başlangıç Saati</label>
+                                <input type="time" id="availabilityStartTime" class="form-control-modern" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Bitiş Saati</label>
+                                <input type="time" id="availabilityEndTime" class="form-control-modern" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group-modern form-check-modern">
+                        <input type="checkbox" id="availabilityIsAvailable" class="form-check-input-modern" checked />
+                        <label class="form-check-label-modern" for="availabilityIsAvailable">Müsait</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="addAvailability()">Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Müsaitlik Silme Modal -->
+<div class="modal fade" id="deleteAvailabilityModal" tabindex="-1" aria-labelledby="deleteAvailabilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
+                <h5 class="modal-title" id="deleteAvailabilityModalLabel">
+                    <span style="font-size: 1.5rem;">⚠️</span> Müsaitlik Saati Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uyarı!</strong> Bu işlem geri alınamaz. Müsaitlik saati silinecektir.
+                </div>
+
+                <div class="delete-info-modal">
+                    <p style="margin: 0; color: #1e293b; font-weight: 600;">
+                        <strong>"<span id="deleteAvailabilityDay"></span> - <span id="deleteAvailabilityTime"></span>"</strong> müsaitlik saatini silmek istediğinizden emin misiniz?
+                    </p>
+                </div>
+
+                <input type="hidden" id="deleteAvailabilityId" />
+            </div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteAvailability()">Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizmet Silme Modal -->
+<div class="modal fade" id="deleteTrainerServiceModal" tabindex="-1" aria-labelledby="deleteTrainerServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
+                <h5 class="modal-title" id="deleteTrainerServiceModalLabel">
+                    <span style="font-size: 1.5rem;">⚠️</span> Hizmet Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uyarı!</strong> Bu işlem geri alınamaz. Hizmet silinecektir.
+                </div>
+
+                <div class="delete-info-modal">
+                    <p style="margin: 0; color: #1e293b; font-weight: 600;">
+                        <strong>"<span id="deleteTrainerServiceName"></span>"</strong> hizmetini silmek istediğinizden emin misiniz?
+                    </p>
+                </div>
+
+                <input type="hidden" id="deleteTrainerServiceId" />
+            </div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteTrainerService()">Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteServiceModal = document.getElementById('deleteTrainerServiceModal');
+            if (deleteServiceModal) {
+                deleteServiceModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const trainerServiceId = button.getAttribute('data-trainer-service-id');
+                    const serviceName = button.getAttribute('data-service-name');
+                    
+                    document.getElementById('deleteTrainerServiceId').value = trainerServiceId;
+                    document.getElementById('deleteTrainerServiceName').textContent = serviceName;
+                });
+            }
+
+            const deleteAvailabilityModal = document.getElementById('deleteAvailabilityModal');
+            if (deleteAvailabilityModal) {
+                deleteAvailabilityModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const availabilityId = button.getAttribute('data-availability-id');
+                    const availabilityDay = button.getAttribute('data-availability-day');
+                    const availabilityTime = button.getAttribute('data-availability-time');
+                    
+                    document.getElementById('deleteAvailabilityId').value = availabilityId;
+                    document.getElementById('deleteAvailabilityDay').textContent = availabilityDay;
+                    document.getElementById('deleteAvailabilityTime').textContent = availabilityTime;
+                });
+            }
+        });
+
+        function addTrainerService() {
+            const trainerId = document.getElementById('trainerId').value;
+            const serviceId = document.getElementById('trainerServiceId').value;
+
+            if (!serviceId) {
+                alert('Lütfen bir hizmet seçin.');
+                return;
+            }
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("AddTrainerService", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    trainerId: trainerId,
+                    serviceId: serviceId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet eklenirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function confirmDeleteTrainerService() {
+            const id = document.getElementById('deleteTrainerServiceId').value;
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("DeleteTrainerService", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteTrainerServiceModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet silinirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function addAvailability() {
+            const trainerId = document.getElementById('availabilityTrainerId').value;
+            const dayOfWeek = document.getElementById('availabilityDayOfWeek').value;
+            const startTime = document.getElementById('availabilityStartTime').value;
+            const endTime = document.getElementById('availabilityEndTime').value;
+            const isAvailable = document.getElementById('availabilityIsAvailable').checked;
+
+            if (!dayOfWeek || !startTime || !endTime) {
+                alert('Lütfen tüm alanları doldurun.');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                alert('Başlangıç saati bitiş saatinden önce olmalıdır.');
+                return;
+            }
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("AddTrainerAvailability", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    trainerId: trainerId,
+                    dayOfWeek: dayOfWeek,
+                    startTime: startTime,
+                    endTime: endTime,
+                    isAvailable: isAvailable
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addAvailabilityModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Müsaitlik saati eklenirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function confirmDeleteAvailability() {
+            const id = document.getElementById('deleteAvailabilityId').value;
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("DeleteTrainerAvailability", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAvailabilityModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Müsaitlik saati silinirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+    </script>
+}
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+
+    .services-section,
+    .availability-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .availability-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .availability-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .availability-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .availability-item {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .availability-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .availability-info h5 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .availability-time {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    .services-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .services-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .services-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .service-item {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .service-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .service-info h5 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .service-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .modal-footer {
+        border-radius: 0 0 16px 16px;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .delete-info-modal {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    textarea.form-control-modern {
+        resize: vertical;
+        min-height: 100px;
+    }
+</style>
+

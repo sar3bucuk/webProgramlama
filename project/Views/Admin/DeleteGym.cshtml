@@ -1,0 +1,142 @@
+@model proje.Models.Gym
+@{
+    ViewData["Title"] = "Spor Salonu Sil";
+    Layout = "_Layout";
+}
+
+<div class="admin-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="admin-card">
+                    <div class="card-header-custom danger">
+                        <h3>⚠️ Spor Salonu Sil</h3>
+                        <a href="@Url.Action("Gyms", "Admin")" class="btn btn-sm btn-outline-light">← Geri Dön</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <strong>Uyarı!</strong> Bu işlem geri alınamaz. Spor salonu ve tüm ilişkili veriler (hizmetler, antrenörler, randevular) silinecektir.
+                        </div>
+
+                        <div class="delete-info">
+                            <h5>Silmek istediğiniz spor salonu:</h5>
+                            <div class="info-item">
+                                <strong>Ad:</strong> @Model.Name
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Address))
+                            {
+                                <div class="info-item">
+                                    <strong>Adres:</strong> @Model.Address
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Phone))
+                            {
+                                <div class="info-item">
+                                    <strong>Telefon:</strong> @Model.Phone
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <div class="info-item">
+                                    <strong>E-posta:</strong> @Model.Email
+                                </div>
+                            }
+                            <div class="info-item">
+                                <strong>Durum:</strong> 
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pasif</span>
+                                }
+                            </div>
+                        </div>
+
+                        <form asp-action="DeleteGym" method="post">
+                            <input type="hidden" asp-for="Id" />
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-danger btn-lg">Evet, Sil</button>
+                                <a href="@Url.Action("Gyms", "Admin")" class="btn btn-secondary btn-lg">İptal</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-container {
+        min-height: 90vh;
+        background: #0f172a;
+        padding: 3rem 0;
+    }
+
+    .admin-card {
+        background: #334155;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        overflow: hidden;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header-custom.danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .card-header-custom h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .delete-info {
+        background: #1e293b;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .delete-info h5 {
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+        font-weight: 600;
+    }
+
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-item strong {
+        color: #64748b;
+        margin-right: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+

@@ -1,0 +1,103 @@
+@model proje.Models.Gym
+@{
+    ViewData["Title"] = "Yeni Spor Salonu Ekle";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern">
+        <div class="auth-card-modern">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Yeni Spor Salonu Ekle</h2>
+                <p class="auth-subtitle-modern">Sisteme yeni bir spor salonu ekleyin</p>
+            </div>
+
+            <form asp-action="CreateGym" method="post" class="auth-form-modern">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Name" class="form-label-modern">Spor Salonu Adı</label>
+                    <input asp-for="Name" class="form-control-modern" placeholder="Örn: sar3bucuk Spor Salonu" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Address" class="form-label-modern">Adres</label>
+                    <input asp-for="Address" class="form-control-modern" placeholder="Örn: Örnek Mahallesi, Spor Caddesi No:123" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="Phone" class="form-label-modern">Telefon</label>
+                            <input asp-for="Phone" class="form-control-modern" placeholder="Örn: 0264 123 45 67" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="Email" class="form-label-modern">E-posta</label>
+                            <input asp-for="Email" type="email" class="form-control-modern" placeholder="Örn: info@sar3bucuk.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="OpeningTime" class="form-label-modern">Açılış Saati</label>
+                            <input asp-for="OpeningTime" type="time" class="form-control-modern" />
+                            <span asp-validation-for="OpeningTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="ClosingTime" class="form-label-modern">Kapanış Saati</label>
+                            <input asp-for="ClosingTime" type="time" class="form-control-modern" />
+                            <span asp-validation-for="ClosingTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern form-check-modern">
+                    <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" checked />
+                    <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
+                </div>
+
+                <div class="form-actions-modern">
+                    <button type="submit" class="btn-auth-modern">Kaydet</button>
+                    <a href="@Url.Action("Gyms", "Admin")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+</style>
