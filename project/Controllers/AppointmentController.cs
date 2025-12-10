@@ -19,6 +19,54 @@ namespace proje.Controllers
             _context = context;
         }
 
+        private Task CreateNotificationAsync(string userId, string title, string message, int? appointmentId = null)
+        {
+            var notification = new Notification
+            {
+                UserId = userId,
+                Title = title,
+                Message = message,
+                AppointmentId = appointmentId,
+                IsRead = false,
+                CreatedDate = DateTime.Now
+            };
+            _context.Notifications.Add(notification);
+            return Task.CompletedTask;
+        }
+
+        private async Task PopulateViewBagForError(Appointment appointment)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                var member = await _context.Members
+                    .Include(m => m.Gym)
+                    .FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+                
+                if (member?.Gym != null)
+                {
+                    ViewBag.MemberGym = member.Gym;
+                    ViewBag.MemberGymId = member.GymId;
+                }
+            }
+            
+            ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+            
+            // Seçili değerleri ViewBag'e ekle (dropdown'ları yeniden doldurmak için)
+            if (appointment.GymServiceId > 0)
+            {
+                var selectedGymService = await _context.GymServices
+                    .Include(gs => gs.Gym)
+                    .FirstOrDefaultAsync(gs => gs.Id == appointment.GymServiceId);
+                if (selectedGymService != null)
+                {
+                    ViewBag.SelectedGymId = selectedGymService.GymId;
+                    ViewBag.SelectedGymServiceId = appointment.GymServiceId;
+                }
+            }
+            ViewBag.SelectedTrainerId = appointment.TrainerId > 0 ? appointment.TrainerId : 0;
+        }
+
         public async Task<IActionResult> Create()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -36,7 +84,21 @@ namespace proje.Controllers
                 return RedirectToAction("Register", "Account");
             }
 
-            ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
+            // Üyenin kayıtlı olduğu spor salonunu kontrol et
+            if (member.GymId == null || member.Gym == null)
+            {
+                // Spor salonu yoksa sayfayı aç ama mesaj göster
+                ViewBag.MemberGym = null;
+                ViewBag.MemberGymId = null;
+                ViewBag.HasGym = false;
+                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                return View();
+            }
+
+            // Sadece üyenin kayıtlı olduğu spor salonunu göster
+            ViewBag.MemberGym = member.Gym;
+            ViewBag.MemberGymId = member.GymId;
+            ViewBag.HasGym = true;
             ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
             
             return View();
@@ -52,19 +114,75 @@ namespace proje.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // ModelState'den bu alanları kaldır (biz manuel kontrol edeceğiz)
-            ModelState.Remove("MemberId");
-            ModelState.Remove("TrainerId");
-            ModelState.Remove("GymServiceId");
-            ModelState.Remove("Duration");
-            ModelState.Remove("Price");
+            // ModelState'i önce temizle (Required attribute hatalarını kaldırmak için)
+            ModelState.Clear();
 
-            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+            // Form'dan tüm değerleri manuel olarak al (model binding güvenilir değil)
+            var trainerIdValue = Request.Form["TrainerId"].FirstOrDefault() ?? "";
+            var gymServiceIdValue = Request.Form["GymServiceId"].FirstOrDefault() ?? "";
+            var appointmentDateValue = Request.Form["AppointmentDate"].FirstOrDefault() ?? "";
+            var appointmentTimeValue = Request.Form["AppointmentTime"].FirstOrDefault() ?? "";
+            var notesValue = Request.Form["Notes"].FirstOrDefault() ?? "";
+
+            // Debug: Gelen form değerlerini logla
+            System.Diagnostics.Debug.WriteLine($"Form değerleri - TrainerId: '{trainerIdValue}', GymServiceId: '{gymServiceIdValue}', Date: '{appointmentDateValue}', Time: '{appointmentTimeValue}'");
+            
+            // Appointment nesnesini form değerlerinden oluştur
+            if (appointment == null)
+            {
+                appointment = new Appointment();
+            }
+
+            // TrainerId
+            if (!string.IsNullOrEmpty(trainerIdValue) && int.TryParse(trainerIdValue, out int trainerId))
+            {
+                appointment.TrainerId = trainerId;
+            }
+            else
+            {
+                appointment.TrainerId = 0;
+            }
+
+            // GymServiceId
+            if (!string.IsNullOrEmpty(gymServiceIdValue) && int.TryParse(gymServiceIdValue, out int gymServiceId))
+            {
+                appointment.GymServiceId = gymServiceId;
+            }
+            else
+            {
+                appointment.GymServiceId = 0;
+            }
+
+            // AppointmentDate
+            if (!string.IsNullOrEmpty(appointmentDateValue) && DateTime.TryParse(appointmentDateValue, out DateTime appointmentDate))
+            {
+                appointment.AppointmentDate = appointmentDate;
+            }
+
+            // AppointmentTime - TimeSpan'a çevir (HH:mm formatından)
+            if (!string.IsNullOrEmpty(appointmentTimeValue) && TimeSpan.TryParse(appointmentTimeValue, out TimeSpan appointmentTime))
+            {
+                appointment.AppointmentTime = appointmentTime;
+            }
+
+            // Notes
+            appointment.Notes = notesValue;
+
+            var member = await _context.Members
+                .Include(m => m.Gym)
+                .FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
             if (member == null)
             {
                 ModelState.AddModelError("", "Üye kaydı bulunamadı.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
+                return View(appointment);
+            }
+
+            // Üyenin kayıtlı olduğu spor salonunu kontrol et
+            if (member.GymId == null || member.Gym == null)
+            {
+                ModelState.AddModelError("", "Randevu almak için önce bir spor salonuna kayıt olmanız gerekmektedir. Lütfen admin ile iletişime geçin.");
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
 
@@ -75,28 +193,53 @@ namespace proje.Controllers
             if (appointment.TrainerId == 0)
             {
                 ModelState.AddModelError("TrainerId", "Lütfen bir antrenör seçin.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
             if (appointment.GymServiceId == 0)
             {
                 ModelState.AddModelError("GymServiceId", "Lütfen bir hizmet seçin.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
+            
+            // AppointmentDate ve AppointmentTime kontrolü
+            if (appointment.AppointmentDate == default(DateTime))
+            {
+                System.Diagnostics.Debug.WriteLine($"HATA: AppointmentDate default değerde - '{appointmentDateValue}' parse edilemedi");
+                ModelState.AddModelError("AppointmentDate", "Lütfen bir randevu tarihi seçin.");
+                await PopulateViewBagForError(appointment);
+                return View(appointment);
+            }
+            
+            if (appointment.AppointmentTime == default(TimeSpan))
+            {
+                System.Diagnostics.Debug.WriteLine($"HATA: AppointmentTime default değerde - '{appointmentTimeValue}' parse edilemedi");
+                ModelState.AddModelError("AppointmentTime", "Lütfen bir randevu saati seçin.");
+                await PopulateViewBagForError(appointment);
+                return View(appointment);
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Değerler parse edildi - TrainerId: {appointment.TrainerId}, GymServiceId: {appointment.GymServiceId}, Date: {appointment.AppointmentDate}, Time: {appointment.AppointmentTime}");
 
             // GymService kontrolü ve Duration, Price alma
             var gymService = await _context.GymServices
                 .Include(gs => gs.Service)
+                .Include(gs => gs.Gym)
                 .FirstOrDefaultAsync(gs => gs.Id == appointment.GymServiceId);
 
             if (gymService == null || !gymService.IsActive)
             {
                 ModelState.AddModelError("", "Seçilen hizmet bulunamadı veya aktif değil.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
+                return View(appointment);
+            }
+
+            // Seçilen hizmetin üyenin kayıtlı olduğu spor salonuna ait olduğunu kontrol et
+            if (gymService.GymId != member.GymId)
+            {
+                ModelState.AddModelError("", "Seçilen hizmet kayıtlı olduğunuz spor salonuna ait değil.");
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
 
@@ -113,8 +256,7 @@ namespace proje.Controllers
             if (trainer == null || !trainer.IsActive)
             {
                 ModelState.AddModelError("", "Seçilen antrenör bulunamadı veya aktif değil.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
 
@@ -130,8 +272,7 @@ namespace proje.Controllers
             if (availability == null)
             {
                 ModelState.AddModelError("", "Seçilen tarih ve saatte antrenör müsait değil.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
 
@@ -140,8 +281,7 @@ namespace proje.Controllers
             if (appointment.AppointmentTime < availability.StartTime || endTime > availability.EndTime)
             {
                 ModelState.AddModelError("", $"Randevu saati antrenörün müsaitlik saatleri içinde olmalıdır ({availability.StartTime:hh\\:mm} - {availability.EndTime:hh\\:mm}).");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
 
@@ -168,8 +308,7 @@ namespace proje.Controllers
             if (conflictingAppointment != null)
             {
                 ModelState.AddModelError("", "Seçilen saatte başka bir randevu var.");
-                ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-                ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+                await PopulateViewBagForError(appointment);
                 return View(appointment);
             }
 
@@ -177,17 +316,83 @@ namespace proje.Controllers
             appointment.Status = "Pending";
             appointment.CreatedDate = DateTime.Now;
 
-            if (ModelState.IsValid)
+            // Debug: Tüm değerleri logla
+            System.Diagnostics.Debug.WriteLine($"Randevu kaydedilmeye hazır - MemberId: {appointment.MemberId}, TrainerId: {appointment.TrainerId}, GymServiceId: {appointment.GymServiceId}");
+            System.Diagnostics.Debug.WriteLine($"Date: {appointment.AppointmentDate}, Time: {appointment.AppointmentTime}, Duration: {appointment.Duration}, Price: {appointment.Price}");
+            System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+            
+            if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                System.Diagnostics.Debug.WriteLine($"ModelState hataları: {string.Join(", ", errors)}");
+                await PopulateViewBagForError(appointment);
+                return View(appointment);
+            }
+
+            // Tüm kontroller başarılı, randevuyu kaydet
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Randevu veritabanına ekleniyor...");
                 _context.Appointments.Add(appointment);
+                System.Diagnostics.Debug.WriteLine("SaveChangesAsync çağrılıyor...");
                 await _context.SaveChangesAsync();
+                System.Diagnostics.Debug.WriteLine("Randevu başarıyla kaydedildi!");
+
+                // Randevu bilgilerini al
+                var savedAppointment = await _context.Appointments
+                    .Include(a => a.Member)
+                    .Include(a => a.Trainer)
+                    .Include(a => a.GymService)
+                        .ThenInclude(gs => gs.Service)
+                    .FirstOrDefaultAsync(a => a.Id == appointment.Id);
+
+                if (savedAppointment != null)
+                {
+                    // Trainer'a bildirim gönder
+                    var trainerForNotification = await _context.Trainers
+                        .Include(t => t.User)
+                        .FirstOrDefaultAsync(t => t.Id == savedAppointment.TrainerId);
+                    
+                    if (trainerForNotification?.User != null)
+                    {
+                        await CreateNotificationAsync(
+                            trainerForNotification.User.Id,
+                            "Yeni Randevu Talebi",
+                            $"{savedAppointment.Member?.FullName} adlı üye {savedAppointment.AppointmentDate:dd.MM.yyyy} tarihinde {savedAppointment.AppointmentTime:hh\\:mm} saatinde randevu talebinde bulundu.",
+                            savedAppointment.Id
+                        );
+                    }
+
+                    // Tüm Admin'lere bildirim gönder
+                    var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+                    foreach (var admin in adminUsers)
+                    {
+                        await CreateNotificationAsync(
+                            admin.Id,
+                            "Yeni Randevu Talebi",
+                            $"{savedAppointment.Member?.FullName} adlı üye {savedAppointment.AppointmentDate:dd.MM.yyyy} tarihinde {savedAppointment.AppointmentTime:hh\\:mm} saatinde randevu talebinde bulundu.",
+                            savedAppointment.Id
+                        );
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
                 TempData["SuccessMessage"] = "Randevunuz başarıyla oluşturuldu. Onay bekleniyor.";
                 return RedirectToAction("MyAppointments");
             }
-
-            ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
-            ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
-            return View(appointment);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Randevu kaydedilirken hata: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                ModelState.AddModelError("", $"Randevu kaydedilirken bir hata oluştu: {ex.Message}");
+                await PopulateViewBagForError(appointment);
+                return View(appointment);
+            }
         }
 
         public async Task<IActionResult> MyAppointments()
@@ -204,12 +409,59 @@ namespace proje.Controllers
                 return RedirectToAction("Register", "Account");
             }
 
+            var today = DateTime.Today;
+            var activeAppointments = await _context.Appointments
+                .Include(a => a.Trainer)
+                    .ThenInclude(t => t.Gym)
+                .Include(a => a.GymService)
+                    .ThenInclude(gs => gs.Service)
+                .Where(a => a.MemberId == member.Id && 
+                           a.AppointmentDate >= today && 
+                           a.Status != "Completed" && 
+                           a.Status != "Cancelled")
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .ToListAsync();
+
+            var pastAppointments = await _context.Appointments
+                .Include(a => a.Trainer)
+                    .ThenInclude(t => t.Gym)
+                .Include(a => a.GymService)
+                    .ThenInclude(gs => gs.Service)
+                .Where(a => a.MemberId == member.Id && 
+                           (a.AppointmentDate < today || a.Status == "Completed" || a.Status == "Cancelled"))
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .ToListAsync();
+
+            ViewBag.ActiveAppointments = activeAppointments;
+            ViewBag.PastAppointments = pastAppointments;
+
+            return View(activeAppointments);
+        }
+
+        public async Task<IActionResult> PastAppointments()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+            if (member == null)
+            {
+                return RedirectToAction("Register", "Account");
+            }
+
+            var today = DateTime.Today;
             var appointments = await _context.Appointments
                 .Include(a => a.Trainer)
                     .ThenInclude(t => t.Gym)
                 .Include(a => a.GymService)
                     .ThenInclude(gs => gs.Service)
-                .Where(a => a.MemberId == member.Id)
+                .Where(a => a.MemberId == member.Id && 
+                           (a.AppointmentDate < today || a.Status == "Completed" || a.Status == "Cancelled"))
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
@@ -217,7 +469,7 @@ namespace proje.Controllers
             return View(appointments);
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> GetAvailableTrainers(int gymId, int gymServiceId, DateTime appointmentDate, string appointmentTime, int duration)
         {
             if (!TimeSpan.TryParse(appointmentTime, out var timeSpan))
@@ -287,7 +539,7 @@ namespace proje.Controllers
             return Json(new { success = true, trainers = finalTrainers });
         }
 
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> GetGymServices(int gymId)
         {
             var services = await _context.GymServices
@@ -303,6 +555,80 @@ namespace proje.Controllers
                 .ToListAsync();
 
             return Json(new { success = true, services = services });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelAppointment(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+            if (member == null)
+            {
+                return Json(new { success = false, message = "Üye bulunamadı." });
+            }
+
+            var appointment = await _context.Appointments
+                .Include(a => a.Member)
+                .Include(a => a.Trainer)
+                    .ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(a => a.Id == id && a.MemberId == member.Id);
+
+            if (appointment == null)
+            {
+                return Json(new { success = false, message = "Randevu bulunamadı." });
+            }
+
+            if (appointment.Status == "Cancelled")
+            {
+                return Json(new { success = false, message = "Randevu zaten iptal edilmiş." });
+            }
+
+            var oldStatus = appointment.Status;
+            appointment.Status = "Cancelled";
+            appointment.UpdatedDate = DateTime.Now;
+
+            try
+            {
+                _context.Update(appointment);
+                await _context.SaveChangesAsync();
+
+                // Trainer'a bildirim gönder
+                if (appointment.Trainer?.User != null)
+                {
+                    await CreateNotificationAsync(
+                        appointment.Trainer.User.Id,
+                        "Randevu İptal Edildi",
+                        $"{appointment.Member?.FullName} adlı üye {appointment.AppointmentDate:dd.MM.yyyy} tarihinde {appointment.AppointmentTime:hh\\:mm} saatindeki randevuyu iptal etti.",
+                        appointment.Id
+                    );
+                }
+
+                // Tüm Admin'lere bildirim gönder
+                var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+                foreach (var admin in adminUsers)
+                {
+                    await CreateNotificationAsync(
+                        admin.Id,
+                        "Randevu İptal Edildi",
+                        $"{appointment.Member?.FullName} adlı üye {appointment.AppointmentDate:dd.MM.yyyy} tarihinde {appointment.AppointmentTime:hh\\:mm} saatindeki randevuyu iptal etti.",
+                        appointment.Id
+                    );
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Randevu başarıyla iptal edildi." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Hata: {ex.Message}" });
+            }
         }
     }
 }

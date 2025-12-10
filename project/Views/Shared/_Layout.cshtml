@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
@@ -43,17 +43,25 @@
                         }
                         else if (User.Identity?.IsAuthenticated == true && User.IsInRole("Trainer"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Trainer" asp-action="Index">Antrenör Paneli</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="trainerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Antrenör Paneli
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="trainerDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Trainer" asp-action="Appointments">📅 Randevularım</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Trainer" asp-action="Index">👤 Profil</a></li>
+                                </ul>
                             </li>
                         }
                         else if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin") && !User.IsInRole("Trainer"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Appointment" asp-action="MyAppointments">📅 Randevularım</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Appointment" asp-action="Create">➕ Randevu Al</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="memberDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    📅 Randevularım
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="memberDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Randevularım</a></li>
+                                </ul>
                             </li>
                         }
                         else
@@ -69,9 +77,41 @@
                     <div class="navbar-actions">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
+                            var userRole = "Member";
+                            if (User.IsInRole("Admin"))
+                            {
+                                userRole = "Admin";
+                            }
+                            else if (User.IsInRole("Trainer"))
+                            {
+                                userRole = "Trainer";
+                            }
+                            
+                            <!-- Bildirim Zili -->
+                            <div class="notification-dropdown d-inline-block me-2" data-user-role="@userRole">
+                                <button type="button" class="btn btn-outline-primary position-relative" id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false">
+                                    🔔
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">
+                                        0
+                                    </span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end notification-dropdown-menu" id="notificationDropdown" style="min-width: 350px; max-height: 500px; overflow-y: auto;">
+                                    <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                        <span>Bildirimler</span>
+                                        <button type="button" class="btn btn-sm btn-link p-0" id="markAllReadBtn" style="font-size: 0.75rem;">Tümünü okundu işaretle</button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li id="notificationList">
+                                        <div class="text-center text-muted p-3">
+                                            <p class="mb-0">Bildirim yok</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
                             @if (User.IsInRole("Trainer"))
                             {
-                                <a class="btn btn-outline-primary me-2" asp-controller="Trainer" asp-action="Index">Profil</a>
+                                @* Trainer için butonlar kaldırıldı, dropdown menüde mevcut *@
                             }
                             else if (User.IsInRole("Admin"))
                             {
@@ -79,7 +119,7 @@
                             }
                             else
                             {
-                                <a class="btn btn-outline-primary me-2" asp-controller="Appointment" asp-action="MyAppointments">Randevularım</a>
+                                <a class="btn btn-outline-primary me-2" asp-controller="Member" asp-action="Index">Profil</a>
                             }
                             <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-primary">Çıkış Yap</button>
@@ -131,6 +171,148 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script>
+            $(document).ready(function() {
+                // Bildirim sayısını yükle
+                function loadNotificationCount() {
+                    $.get('@Url.Action("GetUnreadNotificationCount", "Account")', function(data) {
+                        if (data.success && data.count > 0) {
+                            $('#notificationBadge').text(data.count).show();
+                        } else {
+                            $('#notificationBadge').hide();
+                        }
+                    });
+                }
+
+                // Bildirimleri yükle
+                function loadNotifications() {
+                    $.get('@Url.Action("GetNotifications", "Account")', function(data) {
+                        if (data.success && data.notifications.length > 0) {
+                            var html = '';
+                            var userRole = $('.notification-dropdown').data('user-role') || 'Member';
+                            
+                            data.notifications.forEach(function(notif) {
+                                var readClass = notif.isRead ? '' : 'fw-bold';
+                                var readIcon = notif.isRead ? '' : '<span class="badge bg-primary me-2">Yeni</span>';
+                                var date = new Date(notif.createdDate);
+                                var dateStr = date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+                                             date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                                
+                                html += '<li class="notification-item ' + (notif.isRead ? '' : 'unread') + '">';
+                                html += '<a class="dropdown-item" href="#" data-notification-id="' + notif.id + '" data-appointment-id="' + (notif.appointmentId || '') + '" data-user-role="' + userRole + '">';
+                                html += '<div class="d-flex justify-content-between align-items-start">';
+                                html += '<div class="flex-grow-1">';
+                                html += '<div class="d-flex align-items-center mb-1">' + readIcon + '<span class="' + readClass + '">' + notif.title + '</span></div>';
+                                html += '<small class="text-muted">' + notif.message + '</small>';
+                                html += '<div class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">' + dateStr + '</div>';
+                                html += '</div>';
+                                html += '</div>';
+                                html += '</a>';
+                                html += '</li>';
+                            });
+                            $('#notificationList').html(html);
+                        } else {
+                            $('#notificationList').html('<div class="text-center text-muted p-3"><p class="mb-0">Bildirim yok</p></div>');
+                        }
+                    });
+                }
+
+                // Bildirim öğesine tıklandığında okundu işaretle ve yönlendir
+                $(document).on('click', '.notification-item a', function(e) {
+                    e.preventDefault();
+                    var notificationId = $(this).data('notification-id');
+                    var appointmentId = $(this).data('appointment-id');
+                    var userRole = $(this).data('user-role');
+                    
+                    // Bildirimi okundu işaretle
+                    if (notificationId) {
+                        $.post('@Url.Action("MarkNotificationAsRead", "Account")', {
+                            id: notificationId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        }, function(data) {
+                            if (data.success) {
+                                loadNotificationCount();
+                                
+                                // Rolüne göre yönlendir
+                                var redirectUrl = '';
+                                if (userRole === 'Admin') {
+                                    redirectUrl = '@Url.Action("Appointments", "Admin")';
+                                } else if (userRole === 'Trainer') {
+                                    redirectUrl = '@Url.Action("Appointments", "Trainer")';
+                                } else {
+                                    redirectUrl = '@Url.Action("MyAppointments", "Appointment")';
+                                }
+                                
+                                // AppointmentId varsa URL'e ekle (sayfa yüklendiğinde scroll yapılabilir)
+                                if (appointmentId) {
+                                    redirectUrl += '?highlight=' + appointmentId;
+                                }
+                                
+                                window.location.href = redirectUrl;
+                            }
+                        });
+                    }
+                });
+
+                // Tümünü okundu işaretle
+                $('#markAllReadBtn').click(function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $.post('@Url.Action("MarkAllNotificationsAsRead", "Account")', {
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    }, function(data) {
+                        if (data.success) {
+                            loadNotifications();
+                            loadNotificationCount();
+                        }
+                    });
+                });
+
+                // Dropdown açıldığında bildirimleri yükle
+                $('#notificationBell').on('click', function() {
+                    loadNotifications();
+                });
+
+                // İlk yükleme
+                loadNotificationCount();
+
+                // Her 30 saniyede bir bildirim sayısını güncelle
+                setInterval(loadNotificationCount, 30000);
+            });
+        </script>
+        <style>
+            .notification-dropdown-menu {
+                max-width: 400px;
+            }
+            .notification-item {
+                border-bottom: 1px solid #e9ecef;
+            }
+            .notification-item:last-child {
+                border-bottom: none;
+            }
+            .notification-item.unread {
+                background-color: #f8f9fa;
+            }
+            .notification-item a {
+                padding: 0.75rem 1rem;
+                text-decoration: none;
+                color: inherit;
+            }
+            .notification-item a:hover {
+                background-color: #e9ecef;
+            }
+            .notification-dropdown .dropdown-header {
+                padding: 0.75rem 1rem;
+                font-weight: 600;
+            }
+            #notificationBadge {
+                font-size: 0.65rem;
+                padding: 0.25em 0.4em;
+            }
+        </style>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

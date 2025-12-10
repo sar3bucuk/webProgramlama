@@ -20,13 +20,13 @@
 
                 <div class="form-group-modern">
                     <label class="form-label-modern">E-posta <span class="text-danger">*</span></label>
-                    <input type="email" name="email" class="form-control-modern" placeholder="Örn: trainer@example.com" required />
+                    <input type="email" name="email" class="form-control-modern" placeholder="Örn: trainer@example.com" required autocomplete="off" />
                     <small class="text-muted">Giriş ve iletişim için kullanılacak e-posta adresi</small>
                 </div>
 
                 <div class="form-group-modern">
                     <label class="form-label-modern">Şifre (Yeni kullanıcı için)</label>
-                    <input type="password" name="password" class="form-control-modern" placeholder="Yeni kullanıcı oluşturuluyorsa şifre girin" />
+                    <input type="password" name="password" class="form-control-modern" placeholder="Yeni kullanıcı oluşturuluyorsa şifre girin" autocomplete="new-password" />
                     <small class="text-muted">Mevcut kullanıcı için boş bırakın</small>
                 </div>
 
@@ -61,13 +61,13 @@
                     <div class="col-md-6">
                         <div class="form-group-modern">
                             <label asp-for="ExperienceYears" class="form-label-modern">Deneyim Yılı</label>
-                            <input asp-for="ExperienceYears" type="number" class="form-control-modern" min="0" value="0" />
+                            <input asp-for="ExperienceYears" type="number" class="form-control-modern" min="0" />
                             <span asp-validation-for="ExperienceYears" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group-modern form-check-modern" style="margin-top: 2rem;">
-                            <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" checked />
+                            <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" />
                             <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
                         </div>
                     </div>

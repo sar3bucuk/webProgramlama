@@ -1,0 +1,203 @@
+@model proje.Models.Member
+@{
+    ViewData["Title"] = "Profilim";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Profilim</h2>
+                <p class="auth-subtitle-modern">Kişisel bilgilerinizi görüntüleyin ve yönetin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="member-profile-section">
+                <div class="profile-header">
+                    <h3>Kişisel Bilgiler</h3>
+                    <a href="@Url.Action("Edit", "Member")" class="btn btn-primary btn-sm">Düzenle</a>
+                </div>
+
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <strong>Ad Soyad:</strong>
+                        <span>@Model.FullName</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>E-posta:</strong>
+                        <span>@(Model.User?.Email ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Telefon:</strong>
+                        <span>@(Model.Phone ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Doğum Tarihi:</strong>
+                        <span>@(Model.DateOfBirth?.ToString("dd.MM.yyyy") ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Cinsiyet:</strong>
+                        <span>@(Model.Gender ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Boy:</strong>
+                        <span>@(Model.Height.HasValue ? Model.Height.Value + " cm" : "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Kilo:</strong>
+                        <span>@(Model.Weight.HasValue ? Model.Weight.Value + " kg" : "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Vücut Tipi:</strong>
+                        <span>@(Model.BodyType ?? "-")</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <strong>Spor Salonu:</strong>
+                        @if (Model.Gym != null)
+                        {
+                            <span class="member-gym-badge">@Model.Gym.Name</span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.HealthConditions))
+                {
+                    <div class="profile-section">
+                        <h4>Sağlık Durumu</h4>
+                        <p>@Model.HealthConditions</p>
+                    </div>
+                }
+            </div>
+
+            <div class="profile-actions">
+                <a href="@Url.Action("Edit", "Member")" class="btn-auth-modern" style="text-decoration: none;">Profili Düzenle</a>
+                <a href="@Url.Action("MyAppointments", "Appointment")" class="btn-auth-modern btn-secondary-modern" style="text-decoration: none;">Randevularım</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .member-profile-section {
+        margin-top: 2rem;
+    }
+
+    .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+    }
+
+    .profile-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+    .profile-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .profile-info-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .profile-info-item strong {
+        display: block;
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .profile-info-item span {
+        display: block;
+        color: var(--text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .member-gym-badge {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .profile-section {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .profile-section h4 {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .profile-section p {
+        color: #64748b;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+
+    .profile-actions .btn-auth-modern {
+        text-decoration: none;
+    }
+
+    .profile-actions .btn-auth-modern:hover {
+        text-decoration: none;
+    }
+
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+</style>

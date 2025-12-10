@@ -1,0 +1,362 @@
+@model IEnumerable<proje.Models.Appointment>
+@{
+    ViewData["Title"] = "Randevularım";
+    Layout = "_Layout";
+    var activeAppointments = ViewBag.ActiveAppointments as IEnumerable<proje.Models.Appointment> ?? Model;
+    var pastAppointments = ViewBag.PastAppointments as IEnumerable<proje.Models.Appointment> ?? new List<proje.Models.Appointment>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1400px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="admin-content-full">
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2>Randevularım</h2>
+                            <p class="text-muted">Randevularınızı görüntüleyin, onaylayın veya reddedin</p>
+                        </div>
+                    </div>
+                </div>
+
+                @Html.AntiForgeryToken()
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mt-4" id="appointmentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
+                            Aktif Randevular
+                            @if (activeAppointments.Any())
+                            {
+                                <span class="badge bg-primary ms-2">@activeAppointments.Count()</span>
+                            }
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab">
+                            Geçmiş Randevular
+                            @if (pastAppointments.Any())
+                            {
+                                <span class="badge bg-secondary ms-2">@pastAppointments.Count()</span>
+                            }
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content mt-3" id="appointmentTabContent">
+                    <!-- Active Appointments Tab -->
+                    <div class="tab-pane fade show active" id="active" role="tabpanel">
+                        <div class="appointments-table-card">
+                            @if (activeAppointments != null && activeAppointments.Any())
+                            {
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Saat</th>
+                                            <th>Üye</th>
+                                            <th>Spor Salonu</th>
+                                            <th>Hizmet</th>
+                                            <th>Süre</th>
+                                            <th>Ücret</th>
+                                            <th>Durum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var appointment in activeAppointments)
+                                        {
+                                            <tr>
+                                                <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
+                                                <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
+                                                <td style="color: #64748b;">@appointment.Member?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Gym?.Name</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
+                                                <td style="color: #64748b;">@appointment.Duration dakika</td>
+                                                <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                                <td>
+                                                    @switch (appointment.Status)
+                                                    {
+                                                        case "Pending":
+                                                            <span class="badge bg-warning">Beklemede</span>
+                                                            break;
+                                                        case "Approved":
+                                                            <span class="badge bg-success">Onaylandı</span>
+                                                            break;
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Reddedildi</span>
+                                                            break;
+                                                        case "Completed":
+                                                            <span class="badge bg-info">Tamamlandı</span>
+                                                            break;
+                                                        case "Cancelled":
+                                                            <span class="badge bg-secondary">İptal Edildi</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@appointment.Status</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            Durum Değiştir
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Pending')">Beklemede</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Approved')">Onayla</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Rejected')">Reddet</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Completed')">Tamamlandı</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Cancelled')">İptal Et</a></li>
+                                                        </ul>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(appointment.Notes))
+                                                    {
+                                                        <button class="btn btn-sm btn-info ms-1" data-bs-toggle="modal" data-bs-target="#notesModal" 
+                                                                data-notes="@appointment.Notes" data-member="@appointment.Member?.FullName">
+                                                            📝 Notlar
+                                                        </button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-5">
+                                    <p>Henüz randevunuz bulunmamaktadır.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Past Appointments Tab -->
+                    <div class="tab-pane fade" id="past" role="tabpanel">
+                        <div class="appointments-table-card">
+                            @if (pastAppointments != null && pastAppointments.Any())
+                            {
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Saat</th>
+                                            <th>Üye</th>
+                                            <th>Spor Salonu</th>
+                                            <th>Hizmet</th>
+                                            <th>Süre</th>
+                                            <th>Ücret</th>
+                                            <th>Durum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var appointment in pastAppointments)
+                                        {
+                                            <tr>
+                                                <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
+                                                <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
+                                                <td style="color: #64748b;">@appointment.Member?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Gym?.Name</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
+                                                <td style="color: #64748b;">@appointment.Duration dakika</td>
+                                                <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                                <td>
+                                                    @switch (appointment.Status)
+                                                    {
+                                                        case "Pending":
+                                                            <span class="badge bg-warning">Beklemede</span>
+                                                            break;
+                                                        case "Approved":
+                                                            <span class="badge bg-success">Onaylandı</span>
+                                                            break;
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Reddedildi</span>
+                                                            break;
+                                                        case "Completed":
+                                                            <span class="badge bg-info">Tamamlandı</span>
+                                                            break;
+                                                        case "Cancelled":
+                                                            <span class="badge bg-secondary">İptal Edildi</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@appointment.Status</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-5">
+                                    <p>Geçmiş randevunuz bulunmamaktadır.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notlar Modal -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel">Randevu Notları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Üye:</strong> <span id="notesMemberName"></span></p>
+                <p><strong>Notlar:</strong></p>
+                <p id="notesContent" style="white-space: pre-wrap;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateStatus(appointmentId, status) {
+        const statusNames = {
+            'Pending': 'beklemede',
+            'Approved': 'onaylandı',
+            'Rejected': 'reddedildi',
+            'Completed': 'tamamlandı',
+            'Cancelled': 'iptal edildi'
+        };
+        
+        if (!confirm(`Randevu durumunu "${statusNames[status] || status}" olarak güncellemek istediğinizden emin misiniz?`)) {
+            return;
+        }
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        
+        if (!token) {
+            alert('Güvenlik token\'ı bulunamadı. Sayfayı yenileyip tekrar deneyin.');
+            return;
+        }
+
+        fetch('@Url.Action("UpdateAppointmentStatus", "Trainer")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: new URLSearchParams({
+                id: appointmentId,
+                status: status,
+                __RequestVerificationToken: token
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Durum güncellenirken bir hata oluştu.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+
+    // Notlar modal için
+    document.addEventListener('DOMContentLoaded', function() {
+        const notesModal = document.getElementById('notesModal');
+        if (notesModal) {
+            notesModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const notes = button.getAttribute('data-notes');
+                const member = button.getAttribute('data-member');
+                
+                document.getElementById('notesContent').textContent = notes || 'Not bulunmamaktadır.';
+                document.getElementById('notesMemberName').textContent = member || '-';
+            });
+        }
+    });
+</script>
+
+<style>
+    .admin-dashboard-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .appointments-table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-top: 1rem;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s;
+        color: #1e293b;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-group .dropdown-menu {
+        min-width: 150px;
+    }
+
+    .nav-tabs {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .nav-tabs .nav-link {
+        color: #64748b;
+        border: none;
+        border-bottom: 2px solid transparent;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: #1e293b;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #1e293b;
+        border-bottom-color: #3b82f6;
+        background: transparent;
+    }
+</style>

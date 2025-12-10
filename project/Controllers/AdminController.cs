@@ -21,6 +21,21 @@ namespace proje.Controllers
             _context = context;
         }
 
+        private Task CreateNotificationAsync(string userId, string title, string message, int? appointmentId = null)
+        {
+            var notification = new Notification
+            {
+                UserId = userId,
+                Title = title,
+                Message = message,
+                AppointmentId = appointmentId,
+                IsRead = false,
+                CreatedDate = DateTime.Now
+            };
+            _context.Notifications.Add(notification);
+            return Task.CompletedTask;
+        }
+
         public async Task<IActionResult> Index()
         {
             // Spor salonları ve istatistikleri
@@ -430,19 +445,32 @@ namespace proje.Controllers
             }
             else
             {
-                // Kullanıcı zaten var, Trainer rolü var mı kontrol et
-                if (!await _userManager.IsInRoleAsync(user, "Trainer"))
+                // Kullanıcı zaten var - Member rolünde mi kontrol et
+                if (await _userManager.IsInRoleAsync(user, "Member"))
                 {
-                    await _userManager.AddToRoleAsync(user, "Trainer");
+                    // Member olarak kayıtlı mı kontrol et
+                    var existingMember = await _context.Members.FirstOrDefaultAsync(m => m.UserId == user.Id);
+                    if (existingMember != null)
+                    {
+                        ModelState.AddModelError("email", "Bu e-posta adresi zaten bir üye olarak kayıtlı. Aynı e-posta hem üye hem antrenör olamaz.");
+                        ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
+                        return View(trainer);
+                    }
                 }
 
                 // Bu kullanıcı zaten antrenör olarak kayıtlı mı kontrol et
                 var existingTrainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == user.Id);
                 if (existingTrainer != null)
                 {
-                    ModelState.AddModelError("", "Bu e-posta adresi ile zaten bir antrenör kayıtlı.");
+                    ModelState.AddModelError("email", "Bu e-posta adresi ile zaten bir antrenör kayıtlı.");
                     ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
                     return View(trainer);
+                }
+
+                // Trainer rolü yoksa ekle
+                if (!await _userManager.IsInRoleAsync(user, "Trainer"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Trainer");
                 }
             }
 
@@ -716,6 +744,42 @@ namespace proje.Controllers
         // Randevu Yönetimi
         public async Task<IActionResult> Appointments()
         {
+            var today = DateTime.Today;
+            var activeAppointments = await _context.Appointments
+                .Include(a => a.Member)
+                    .ThenInclude(m => m.User)
+                .Include(a => a.Trainer)
+                    .ThenInclude(t => t.Gym)
+                .Include(a => a.GymService)
+                    .ThenInclude(gs => gs.Service)
+                .Where(a => a.AppointmentDate >= today && 
+                           a.Status != "Completed" && 
+                           a.Status != "Cancelled")
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .ToListAsync();
+
+            var pastAppointments = await _context.Appointments
+                .Include(a => a.Member)
+                    .ThenInclude(m => m.User)
+                .Include(a => a.Trainer)
+                    .ThenInclude(t => t.Gym)
+                .Include(a => a.GymService)
+                    .ThenInclude(gs => gs.Service)
+                .Where(a => a.AppointmentDate < today || a.Status == "Completed" || a.Status == "Cancelled")
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .ToListAsync();
+
+            ViewBag.ActiveAppointments = activeAppointments;
+            ViewBag.PastAppointments = pastAppointments;
+
+            return View(activeAppointments);
+        }
+
+        public async Task<IActionResult> PastAppointments()
+        {
+            var today = DateTime.Today;
             var appointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -723,6 +787,7 @@ namespace proje.Controllers
                     .ThenInclude(t => t.Gym)
                 .Include(a => a.GymService)
                     .ThenInclude(gs => gs.Service)
+                .Where(a => a.AppointmentDate < today || a.Status == "Completed" || a.Status == "Cancelled")
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
@@ -746,9 +811,34 @@ namespace proje.Controllers
                 return Json(new { success = false, message = "Geçersiz durum." });
             }
 
+            var oldStatus = appointment.Status;
             appointment.Status = status;
             appointment.UpdatedDate = DateTime.Now;
             await _context.SaveChangesAsync();
+
+            // Durum değiştiyse ve Approved/Rejected ise üye'ye bildirim gönder
+            if (oldStatus != status && (status == "Approved" || status == "Rejected"))
+            {
+                var appointmentWithDetails = await _context.Appointments
+                    .Include(a => a.Member)
+                        .ThenInclude(m => m.User)
+                    .Include(a => a.Trainer)
+                    .Include(a => a.GymService)
+                        .ThenInclude(gs => gs.Service)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                if (appointmentWithDetails?.Member?.User != null)
+                {
+                    var statusText = status == "Approved" ? "onaylandı" : "reddedildi";
+                    await CreateNotificationAsync(
+                        appointmentWithDetails.Member.User.Id,
+                        $"Randevu {statusText}",
+                        $"{appointmentWithDetails.AppointmentDate:dd.MM.yyyy} tarihinde {appointmentWithDetails.AppointmentTime:hh\\:mm} saatindeki randevunuz admin tarafından {statusText}.",
+                        appointmentWithDetails.Id
+                    );
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             return Json(new { success = true, message = "Randevu durumu başarıyla güncellendi." });
         }

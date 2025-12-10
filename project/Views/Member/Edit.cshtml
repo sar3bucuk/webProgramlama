@@ -1,0 +1,158 @@
+@model proje.Models.Member
+@{
+    ViewData["Title"] = "Profil Düzenle";
+    Layout = "_Layout";
+    var gyms = ViewBag.Gyms as IEnumerable<proje.Models.Gym> ?? new List<proje.Models.Gym>();
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1000px;">
+        <div class="auth-card-modern">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Profil Düzenle</h2>
+                <p class="auth-subtitle-modern">Kişisel bilgilerinizi güncelleyin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Edit" method="post" class="auth-form-modern">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="UserId" />
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="FirstName" class="form-label-modern">Ad <span class="text-danger">*</span></label>
+                            <input asp-for="FirstName" class="form-control-modern" placeholder="Örn: Ahmet" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="LastName" class="form-label-modern">Soyad <span class="text-danger">*</span></label>
+                            <input asp-for="LastName" class="form-control-modern" placeholder="Örn: Yılmaz" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="form-label-modern">E-posta</label>
+                    <input type="email" class="form-control-modern" value="@(Model.User?.Email ?? "-")" readonly />
+                    <small class="text-muted">E-posta adresi değiştirilemez. Değiştirmek için admin ile iletişime geçin.</small>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Phone" class="form-label-modern">Telefon</label>
+                    <input asp-for="Phone" class="form-control-modern" placeholder="Örn: 0264 123 45 67" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="DateOfBirth" class="form-label-modern">Doğum Tarihi</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control-modern" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="Gender" class="form-label-modern">Cinsiyet</label>
+                            <select asp-for="Gender" class="form-control-modern">
+                                <option value="">Seçiniz</option>
+                                <option value="Erkek">Erkek</option>
+                                <option value="Kadın">Kadın</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group-modern">
+                            <label asp-for="Height" class="form-label-modern">Boy (cm)</label>
+                            <input asp-for="Height" type="number" step="0.01" min="0.01" class="form-control-modern" placeholder="Örn: 175.5" />
+                            <span asp-validation-for="Height" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-modern">
+                            <label asp-for="Weight" class="form-label-modern">Kilo (kg)</label>
+                            <input asp-for="Weight" type="number" step="0.01" min="0.01" class="form-control-modern" placeholder="Örn: 70.5" />
+                            <span asp-validation-for="Weight" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-modern">
+                            <label asp-for="BodyType" class="form-label-modern">Vücut Tipi</label>
+                            <select asp-for="BodyType" class="form-control-modern">
+                                <option value="">Seçiniz</option>
+                                <option value="Ektomorf">Ektomorf</option>
+                                <option value="Mezomorf">Mezomorf</option>
+                                <option value="Endomorf">Endomorf</option>
+                            </select>
+                            <span asp-validation-for="BodyType" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="form-label-modern">Spor Salonu</label>
+                    <input type="text" class="form-control-modern" value="@(Model.Gym?.Name ?? "Kayıtlı spor salonu bulunamadı")" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
+                    <input type="hidden" asp-for="GymId" />
+                    <small class="text-muted">Spor salonu değiştirilemez. Değiştirmek için admin ile iletişime geçin.</small>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="HealthConditions" class="form-label-modern">Sağlık Durumu</label>
+                    <textarea asp-for="HealthConditions" class="form-control-modern" rows="4" placeholder="Herhangi bir sağlık sorunu veya özel durumunuz varsa belirtiniz..."></textarea>
+                    <small class="text-muted">Bu bilgiler antrenörlerinizle paylaşılacaktır.</small>
+                    <span asp-validation-for="HealthConditions" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("Index", "Member")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+</style>

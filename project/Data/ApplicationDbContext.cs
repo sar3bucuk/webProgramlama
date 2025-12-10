@@ -23,6 +23,7 @@ namespace proje.Data
         public DbSet<Member> Members { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<AIRecommendation> AIRecommendations { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -326,6 +327,36 @@ namespace proje.Data
                     .WithMany(m => m.AIRecommendations)
                     .HasForeignKey(ai => ai.MemberId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // =============================================
+            // NOTIFICATIONS TABLE
+            // =============================================
+            builder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired().HasMaxLength(450);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Message).IsRequired().HasMaxLength(1000);
+                entity.Property(e => e.AppointmentId);
+                entity.Property(e => e.IsRead).IsRequired().HasDefaultValue(false);
+                entity.Property(e => e.CreatedDate).IsRequired().HasDefaultValueSql("GETDATE()");
+                
+                // Foreign keys
+                entity.HasOne(n => n.User)
+                    .WithMany()
+                    .HasForeignKey(n => n.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.HasOne(n => n.Appointment)
+                    .WithMany()
+                    .HasForeignKey(n => n.AppointmentId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
+                // Indexes
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.IsRead);
+                entity.HasIndex(e => e.CreatedDate);
             });
         }
     }

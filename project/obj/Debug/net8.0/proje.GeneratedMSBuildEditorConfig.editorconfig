@@ -9,149 +9,177 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = proje
 build_property.RootNamespace = proje
-build_property.ProjectDir = C:\Users\saren\OneDrive\Desktop\webProgramlama\proje - Kopya\
+build_property.ProjectDir = C:\Users\saren\OneDrive\Desktop\webProgramlama\project\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\saren\OneDrive\Desktop\webProgramlama\proje - Kopya
+build_property.MSBuildProjectDirectory = C:\Users\saren\OneDrive\Desktop\webProgramlama\project
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Account/Login.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Account/Register.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/Appointments.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/Appointments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQXBwb2ludG1lbnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/CreateGym.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/CreateGym.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ3JlYXRlR3ltLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/CreateTrainer.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/CreateTrainer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ3JlYXRlVHJhaW5lci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/DeleteGym.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/DeleteGym.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGVsZXRlR3ltLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/EditGym.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/EditGym.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRWRpdEd5bS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/EditTrainer.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/EditTrainer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRWRpdFRyYWluZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/GymDetails.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/GymDetails.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cR3ltRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/Gyms.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/Gyms.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cR3ltcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/Index.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/Members.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/Members.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTWVtYmVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Admin/Trainers.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/PastAppointments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGFzdEFwcG9pbnRtZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Admin/Trainers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cVHJhaW5lcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Appointment/Create.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Appointment/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Appointment/MyAppointments.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Appointment/MyAppointments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRcTXlBcHBvaW50bWVudHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Gyms/Create.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Appointment/PastAppointments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRcUGFzdEFwcG9pbnRtZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Gyms/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3ltc1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Gyms/Delete.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Gyms/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3ltc1xEZWxldGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Gyms/Details.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Gyms/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3ltc1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Gyms/Edit.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Gyms/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3ltc1xFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Gyms/Index.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Gyms/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR3ltc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Home/Index.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Home/Privacy.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Home/Seed.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Home/Seed.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxTZWVkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Services/Index.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Member/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVtYmVyXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Member/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVtYmVyXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Services/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VydmljZXNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Shared/Components/GymName/Default.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Shared/Components/GymName/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcR3ltTmFtZVxEZWZhdWx0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Shared/Components/StatusBadge/Default.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Shared/Components/StatusBadge/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcU3RhdHVzQmFkZ2VcRGVmYXVsdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Shared/Error.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Shared/_LoginPartial.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Shared/_LoginPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Mb2dpblBhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Trainer/Edit.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Trainer/Appointments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhaW5lclxBcHBvaW50bWVudHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Trainer/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhaW5lclxFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Trainer/Index.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Trainer/EditAppointment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhaW5lclxFZGl0QXBwb2ludG1lbnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Trainer/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhaW5lclxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/_ViewImports.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Trainer/PastAppointments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhaW5lclxQYXN0QXBwb2ludG1lbnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/_ViewStart.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/saren/OneDrive/Desktop/webProgramlama/proje - Kopya/Views/Shared/_Layout.cshtml]
+[C:/Users/saren/OneDrive/Desktop/webProgramlama/project/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-to5e2lbxah

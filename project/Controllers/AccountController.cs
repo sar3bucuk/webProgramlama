@@ -21,6 +21,100 @@ namespace proje.Controllers
         }
 
         [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetNotifications()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == currentUser.Id)
+                .OrderByDescending(n => n.CreatedDate)
+                .Take(10)
+                .Select(n => new
+                {
+                    id = n.Id,
+                    title = n.Title,
+                    message = n.Message,
+                    isRead = n.IsRead,
+                    createdDate = n.CreatedDate,
+                    appointmentId = n.AppointmentId
+                })
+                .ToListAsync();
+
+            return Json(new { success = true, notifications = notifications });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetUnreadNotificationCount()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, count = 0 });
+            }
+
+            var count = await _context.Notifications
+                .CountAsync(n => n.UserId == currentUser.Id && !n.IsRead);
+
+            return Json(new { success = true, count = count });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkNotificationAsRead(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Id == id && n.UserId == currentUser.Id);
+
+            if (notification == null)
+            {
+                return Json(new { success = false, message = "Bildirim bulunamadı." });
+            }
+
+            notification.IsRead = true;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllNotificationsAsRead()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == currentUser.Id && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -55,7 +149,7 @@ namespace proje.Controllers
                         }
                         else if (await _userManager.IsInRoleAsync(user, "Trainer"))
                         {
-                            return RedirectToAction("Index", "Trainer");
+                            return RedirectToAction("Index", "Home");
                         }
                         
                         return RedirectToAction("Index", "Home");
@@ -94,6 +188,31 @@ namespace proje.Controllers
         {
             if (ModelState.IsValid)
             {
+                // E-posta ile kullanıcı var mı kontrol et
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    // Kullanıcı zaten var - Trainer rolünde mi kontrol et
+                    if (await _userManager.IsInRoleAsync(existingUser, "Trainer"))
+                    {
+                        // Trainer olarak kayıtlı mı kontrol et
+                        var existingTrainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == existingUser.Id);
+                        if (existingTrainer != null)
+                        {
+                            ModelState.AddModelError("Email", "Bu e-posta adresi zaten bir antrenör olarak kayıtlı. Aynı e-posta hem üye hem antrenör olamaz.");
+                            return View(model);
+                        }
+                    }
+
+                    // Member olarak kayıtlı mı kontrol et
+                    var existingMember = await _context.Members.FirstOrDefaultAsync(m => m.UserId == existingUser.Id);
+                    if (existingMember != null)
+                    {
+                        ModelState.AddModelError("Email", "Bu e-posta adresi zaten bir üye olarak kayıtlı.");
+                        return View(model);
+                    }
+                }
+
                 var user = new IdentityUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)

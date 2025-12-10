@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Randevular";
     Layout = "_Layout";
+    var activeAppointments = ViewBag.ActiveAppointments as IEnumerable<proje.Models.Appointment> ?? Model;
+    var pastAppointments = ViewBag.PastAppointments as IEnumerable<proje.Models.Appointment> ?? new List<proje.Models.Appointment>();
 }
 
 <div class="auth-page-modern">
@@ -26,84 +28,180 @@
                     </div>
                 }
 
-                <div class="appointments-table-card">
-                    @if (Model != null && Model.Any())
-                    {
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>Saat</th>
-                                    <th>Üye</th>
-                                    <th>Antrenör</th>
-                                    <th>Spor Salonu</th>
-                                    <th>Hizmet</th>
-                                    <th>Süre</th>
-                                    <th>Ücret</th>
-                                    <th>Durum</th>
-                                    <th>İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var appointment in Model)
-                                {
-                                    <tr>
-                                        <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
-                                        <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
-                                        <td style="color: #64748b;">@appointment.Member?.FullName</td>
-                                        <td style="color: #64748b;">@appointment.Trainer?.FullName</td>
-                                        <td style="color: #64748b;">@appointment.Trainer?.Gym?.Name</td>
-                                        <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
-                                        <td style="color: #64748b;">@appointment.Duration dakika</td>
-                                        <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
-                                        <td>
-                                            @switch (appointment.Status)
-                                            {
-                                                case "Pending":
-                                                    <span class="badge bg-warning">Beklemede</span>
-                                                    break;
-                                                case "Approved":
-                                                    <span class="badge bg-success">Onaylandı</span>
-                                                    break;
-                                                case "Rejected":
-                                                    <span class="badge bg-danger">Reddedildi</span>
-                                                    break;
-                                                case "Completed":
-                                                    <span class="badge bg-info">Tamamlandı</span>
-                                                    break;
-                                                case "Cancelled":
-                                                    <span class="badge bg-secondary">İptal Edildi</span>
-                                                    break;
-                                                default:
-                                                    <span class="badge bg-secondary">@appointment.Status</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Durum Değiştir
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Pending')">Beklemede</a></li>
-                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Approved')">Onayla</a></li>
-                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Rejected')">Reddet</a></li>
-                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Completed')">Tamamlandı</a></li>
-                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Cancelled')">İptal Et</a></li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <div class="text-center text-muted py-5">
-                            <p>Henüz randevu bulunmamaktadır.</p>
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mt-4" id="appointmentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
+                            Aktif Randevular
+                            @if (activeAppointments.Any())
+                            {
+                                <span class="badge bg-primary ms-2">@activeAppointments.Count()</span>
+                            }
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab">
+                            Geçmiş Randevular
+                            @if (pastAppointments.Any())
+                            {
+                                <span class="badge bg-secondary ms-2">@pastAppointments.Count()</span>
+                            }
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content mt-3" id="appointmentTabContent">
+                    <!-- Active Appointments Tab -->
+                    <div class="tab-pane fade show active" id="active" role="tabpanel">
+                        <div class="appointments-table-card">
+                            @if (activeAppointments != null && activeAppointments.Any())
+                            {
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Saat</th>
+                                            <th>Üye</th>
+                                            <th>Antrenör</th>
+                                            <th>Spor Salonu</th>
+                                            <th>Hizmet</th>
+                                            <th>Süre</th>
+                                            <th>Ücret</th>
+                                            <th>Durum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var appointment in activeAppointments)
+                                        {
+                                            <tr>
+                                                <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
+                                                <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
+                                                <td style="color: #64748b;">@appointment.Member?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.Trainer?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.Trainer?.Gym?.Name</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
+                                                <td style="color: #64748b;">@appointment.Duration dakika</td>
+                                                <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                                <td>
+                                                    @switch (appointment.Status)
+                                                    {
+                                                        case "Pending":
+                                                            <span class="badge bg-warning">Beklemede</span>
+                                                            break;
+                                                        case "Approved":
+                                                            <span class="badge bg-success">Onaylandı</span>
+                                                            break;
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Reddedildi</span>
+                                                            break;
+                                                        case "Completed":
+                                                            <span class="badge bg-info">Tamamlandı</span>
+                                                            break;
+                                                        case "Cancelled":
+                                                            <span class="badge bg-secondary">İptal Edildi</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@appointment.Status</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            Durum Değiştir
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Pending')">Beklemede</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Approved')">Onayla</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Rejected')">Reddet</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Completed')">Tamamlandı</a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Cancelled')">İptal Et</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-5">
+                                    <p>Henüz randevu bulunmamaktadır.</p>
+                                </div>
+                            }
                         </div>
-                    }
+                    </div>
+
+                    <!-- Past Appointments Tab -->
+                    <div class="tab-pane fade" id="past" role="tabpanel">
+                        <div class="appointments-table-card">
+                            @if (pastAppointments != null && pastAppointments.Any())
+                            {
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Saat</th>
+                                            <th>Üye</th>
+                                            <th>Antrenör</th>
+                                            <th>Spor Salonu</th>
+                                            <th>Hizmet</th>
+                                            <th>Süre</th>
+                                            <th>Ücret</th>
+                                            <th>Durum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var appointment in pastAppointments)
+                                        {
+                                            <tr>
+                                                <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
+                                                <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
+                                                <td style="color: #64748b;">@appointment.Member?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.Trainer?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.Trainer?.Gym?.Name</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
+                                                <td style="color: #64748b;">@appointment.Duration dakika</td>
+                                                <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                                <td>
+                                                    @switch (appointment.Status)
+                                                    {
+                                                        case "Pending":
+                                                            <span class="badge bg-warning">Beklemede</span>
+                                                            break;
+                                                        case "Approved":
+                                                            <span class="badge bg-success">Onaylandı</span>
+                                                            break;
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Reddedildi</span>
+                                                            break;
+                                                        case "Completed":
+                                                            <span class="badge bg-info">Tamamlandı</span>
+                                                            break;
+                                                        case "Cancelled":
+                                                            <span class="badge bg-secondary">İptal Edildi</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@appointment.Status</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-5">
+                                    <p>Geçmiş randevu bulunmamaktadır.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -154,7 +252,7 @@
         padding: 1.5rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(226, 232, 240, 0.8);
-        margin-top: 2rem;
+        margin-top: 1rem;
     }
 
     .table thead th {
@@ -179,5 +277,25 @@
     .btn-group .dropdown-menu {
         min-width: 150px;
     }
-</style>
 
+    .nav-tabs {
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .nav-tabs .nav-link {
+        color: #64748b;
+        border: none;
+        border-bottom: 2px solid transparent;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: #1e293b;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #1e293b;
+        border-bottom-color: #3b82f6;
+        background: transparent;
+    }
+</style>

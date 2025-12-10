@@ -1,0 +1,213 @@
+@model proje.Models.Appointment
+@{
+    ViewData["Title"] = "Randevu Düzenle";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1000px;">
+        <div class="auth-card-modern">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Randevu Durumu Düzenle</h2>
+                <p class="auth-subtitle-modern">Randevu durumunu güncelleyin</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="info-section mb-4">
+                <h4>Randevu Bilgileri</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Üye:</strong>
+                        <span>@Model.Member?.FullName</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Tarih:</strong>
+                        <span>@Model.AppointmentDate.ToString("dd.MM.yyyy")</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Saat:</strong>
+                        <span>@Model.AppointmentTime.ToString(@"hh\:mm")</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Hizmet:</strong>
+                        <span>@Model.GymService?.Service?.Name</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Süre:</strong>
+                        <span>@Model.Duration dakika</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Ücret:</strong>
+                        <span>@Model.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Mevcut Durum:</strong>
+                        @switch (Model.Status)
+                        {
+                            case "Pending":
+                                <span class="badge bg-warning">Beklemede</span>
+                                break;
+                            case "Approved":
+                                <span class="badge bg-success">Onaylandı</span>
+                                break;
+                            case "Rejected":
+                                <span class="badge bg-danger">Reddedildi</span>
+                                break;
+                            case "Completed":
+                                <span class="badge bg-info">Tamamlandı</span>
+                                break;
+                            case "Cancelled":
+                                <span class="badge bg-secondary">İptal Edildi</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary">@Model.Status</span>
+                                break;
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <strong>Notlar:</strong>
+                            <span>@Model.Notes</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <form asp-action="EditAppointment" method="post" class="auth-form-modern" id="statusForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                
+                <div class="form-group-modern">
+                    <label for="status" class="form-label-modern">Randevu Durumu <span class="text-danger">*</span></label>
+                    <select name="status" id="status" class="form-control-modern" required>
+                        @if (Model.Status == "Pending")
+                        {
+                            <option value="Pending" selected>Beklemede</option>
+                        }
+                        else
+                        {
+                            <option value="Pending">Beklemede</option>
+                        }
+                        @if (Model.Status == "Approved")
+                        {
+                            <option value="Approved" selected>Onaylandı</option>
+                        }
+                        else
+                        {
+                            <option value="Approved">Onaylandı</option>
+                        }
+                        @if (Model.Status == "Rejected")
+                        {
+                            <option value="Rejected" selected>Reddedildi</option>
+                        }
+                        else
+                        {
+                            <option value="Rejected">Reddedildi</option>
+                        }
+                        @if (Model.Status == "Completed")
+                        {
+                            <option value="Completed" selected>Tamamlandı</option>
+                        }
+                        else
+                        {
+                            <option value="Completed">Tamamlandı</option>
+                        }
+                        @if (Model.Status == "Cancelled")
+                        {
+                            <option value="Cancelled" selected>İptal Edildi</option>
+                        }
+                        else
+                        {
+                            <option value="Cancelled">İptal Edildi</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("Appointments", "Trainer")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Durumu Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .info-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .info-section h4 {
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .info-item strong {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .info-item span {
+        color: var(--text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+</style>

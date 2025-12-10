@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje - Kopya\\proje.csproj": {}
+    "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\proje.csproj": {}
   },
   "projects": {
-    "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje - Kopya\\proje.csproj": {
+    "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\proje.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje - Kopya\\proje.csproj",
+        "projectUniqueName": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\proje.csproj",
         "projectName": "proje",
-        "projectPath": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje - Kopya\\proje.csproj",
+        "projectPath": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\proje.csproj",
         "packagesPath": "C:\\Users\\saren\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje - Kopya\\obj\\",
+        "outputPath": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",

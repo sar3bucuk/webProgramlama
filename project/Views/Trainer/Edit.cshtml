@@ -27,7 +27,6 @@
                 <input type="hidden" asp-for="Id" />
                 <input type="hidden" asp-for="UserId" />
                 <input type="hidden" asp-for="GymId" />
-                <input type="hidden" asp-for="IsActive" />
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="form-group-modern">
@@ -53,9 +52,9 @@
                 </div>
 
                 <div class="form-group-modern">
-                    <label class="form-label-modern">E-posta</label>
-                    <input type="email" class="form-control-modern" value="@(Model.User?.Email ?? Model.Email ?? "-")" readonly />
-                    <small class="text-muted">E-posta adresi giriş ve iletişim için kullanılır. Değiştirmek için admin ile iletişime geçin.</small>
+                    <label asp-for="Email" class="form-label-modern">E-posta</label>
+                    <input asp-for="Email" type="email" class="form-control-modern" placeholder="Örn: ahmet@example.com" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group-modern">
@@ -76,16 +75,25 @@
                     <span asp-validation-for="Bio" class="text-danger"></span>
                 </div>
 
+                <div class="form-group-modern form-check-modern">
+                    <input asp-for="IsActive" type="checkbox" class="form-check-input-modern" />
+                    <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
+                    <span asp-validation-for="IsActive" class="text-danger"></span>
+                </div>
+
                 <div class="form-actions-modern">
                     <a href="@Url.Action("Index", "Trainer")" class="btn-auth-modern btn-secondary-modern">İptal</a>
                     <button type="submit" class="btn-auth-modern">Güncelle</button>
                 </div>
             </form>
 
-            <!-- Hizmetler Bölümü (Sadece Görüntüleme) -->
+            <!-- Hizmetler Bölümü -->
             <div class="services-section">
                 <div class="services-header">
                     <h3>Verdiğim Hizmetler</h3>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTrainerServiceModal">
+                        <span>+</span> Yeni Hizmet Ekle
+                    </button>
                 </div>
 
                 <div class="services-list">
@@ -93,21 +101,93 @@
                     {
                         @foreach (var trainerService in Model.TrainerServices)
                         {
-                            <div class="service-item">
+                            <div class="service-item" data-trainer-service-id="@trainerService.Id">
                                 <div class="service-info">
                                     <h5>@trainerService.Service?.Name</h5>
+                                </div>
+                                <div class="service-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteTrainerServiceModal"
+                                            data-trainer-service-id="@trainerService.Id"
+                                            data-service-name="@trainerService.Service?.Name">
+                                        Sil
+                                    </button>
                                 </div>
                             </div>
                         }
                     }
                     else
                     {
-                        <p class="text-muted">Henüz hizmet atanmamış.</p>
+                        <p class="text-muted">Henüz hizmet eklenmemiş.</p>
                     }
                 </div>
-                <p class="text-muted" style="margin-top: 1rem; font-size: 0.875rem;">
-                    Hizmet ekleme/çıkarma işlemleri için admin ile iletişime geçin.
-                </p>
+            </div>
+
+            <!-- Hizmet Ekleme Modal -->
+            <div class="modal fade" id="addTrainerServiceModal" tabindex="-1" aria-labelledby="addTrainerServiceModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addTrainerServiceModalLabel">Yeni Hizmet Ekle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addTrainerServiceForm">
+                                <input type="hidden" id="trainerId" value="@Model.Id" />
+                                <div class="form-group-modern">
+                                    <label class="form-label-modern">Hizmet</label>
+                                    <select id="trainerServiceId" class="form-control-modern" required>
+                                        <option value="">Hizmet Seçin</option>
+                                        @foreach (var service in services)
+                                        {
+                                            var isAlreadyAdded = Model.TrainerServices?.Any(ts => ts.ServiceId == service.Id) ?? false;
+                                            if (!isAlreadyAdded)
+                                            {
+                                                <option value="@service.Id">@service.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-primary" onclick="addTrainerService()">Ekle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hizmet Silme Modal -->
+            <div class="modal fade" id="deleteTrainerServiceModal" tabindex="-1" aria-labelledby="deleteTrainerServiceModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
+                            <h5 class="modal-title" id="deleteTrainerServiceModalLabel">
+                                <span style="font-size: 1.5rem;">⚠️</span> Hizmet Sil
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <strong>Uyarı!</strong> Bu işlem geri alınamaz. Hizmet silinecektir.
+                            </div>
+
+                            <div class="delete-info-modal">
+                                <p style="margin: 0; color: #1e293b; font-weight: 600;">
+                                    "<strong><span id="deleteServiceName"></span></strong>" hizmetini silmek istediğinizden emin misiniz?
+                                </p>
+                            </div>
+
+                            <input type="hidden" id="deleteTrainerServiceId" />
+                        </div>
+                        <div class="modal-footer" style="border-top: none;">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-danger" onclick="confirmDeleteTrainerService()">Evet, Sil</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -115,6 +195,89 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Hizmet Silme Modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteModal = document.getElementById('deleteTrainerServiceModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const trainerServiceId = button.getAttribute('data-trainer-service-id');
+                    const serviceName = button.getAttribute('data-service-name');
+                    
+                    document.getElementById('deleteTrainerServiceId').value = trainerServiceId;
+                    document.getElementById('deleteServiceName').textContent = serviceName || 'Hizmet';
+                });
+            }
+        });
+
+        function addTrainerService() {
+            const serviceId = document.getElementById('trainerServiceId').value;
+
+            if (!serviceId) {
+                alert('Lütfen bir hizmet seçin.');
+                return;
+            }
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("AddTrainerService", "Trainer")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    serviceId: serviceId,
+                    __RequestVerificationToken: token
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet eklenirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function confirmDeleteTrainerService() {
+            const id = document.getElementById('deleteTrainerServiceId').value;
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("DeleteTrainerService", "Trainer")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: id,
+                    __RequestVerificationToken: token
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Hizmet silinirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+    </script>
 }
 
 <style>
@@ -171,12 +334,46 @@
         padding: 1.5rem;
         border: 1px solid rgba(226, 232, 240, 0.8);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .service-info h5 {
         margin: 0;
         color: var(--text-dark);
         font-weight: 600;
+    }
+
+    .service-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .services-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .form-check-modern {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .form-check-input-modern {
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+    }
+
+    .form-check-label-modern {
+        margin: 0;
+        cursor: pointer;
+        color: var(--text-dark);
+        font-weight: 500;
     }
 
     textarea.form-control-modern {
