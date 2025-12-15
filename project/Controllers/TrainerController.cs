@@ -1,3 +1,9 @@
+/*
+Antrenör paneli controller'ı - Trainer rolü gerekir.
+Antrenörlerin profil yönetimi, randevu görüntüleme ve durum güncelleme, hizmet yönetimi işlemlerini yönetir.
+Sadece kendi bilgilerini ve kendi randevularını yönetebilirler.
+*/
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +25,9 @@ namespace proje.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Kullanıcıya bildirim oluşturur - randevu durum değişikliklerinde kullanılır
+        /// </summary>
         private Task CreateNotificationAsync(string userId, string title, string message, int? appointmentId = null)
         {
             var notification = new Notification
@@ -34,6 +43,9 @@ namespace proje.Controllers
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Antrenör profil sayfasını gösterir - kullanıcı, spor salonu ve hizmet bilgileri ile birlikte
+        /// </summary>
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -57,6 +69,9 @@ namespace proje.Controllers
             return View(trainer);
         }
 
+        /// <summary>
+        /// Antrenör profil düzenleme form sayfasını gösterir - aktif hizmetler listesi ile birlikte
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Edit()
         {
@@ -81,6 +96,9 @@ namespace proje.Controllers
             return View(trainer);
         }
 
+        /// <summary>
+        /// Antrenör profil bilgilerini günceller - ad, soyad, telefon, email, bio, deneyim yılı, aktiflik durumu (GymId değiştirilemez, Admin yönetir)
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Trainer trainer)
@@ -103,7 +121,6 @@ namespace proje.Controllers
             {
                 try
                 {
-                    // Sadece antrenörün kendi bilgilerini güncelle
                     existingTrainer.FirstName = trainer.FirstName;
                     existingTrainer.LastName = trainer.LastName;
                     existingTrainer.Phone = trainer.Phone;
@@ -111,7 +128,6 @@ namespace proje.Controllers
                     existingTrainer.Bio = trainer.Bio;
                     existingTrainer.ExperienceYears = trainer.ExperienceYears;
                     existingTrainer.IsActive = trainer.IsActive;
-                    // GymId admin tarafından yönetilir, antrenör değiştiremez
 
                     _context.Update(existingTrainer);
                     await _context.SaveChangesAsync();
@@ -135,6 +151,9 @@ namespace proje.Controllers
             return View(trainer);
         }
 
+        /// <summary>
+        /// Antrenörün randevularını listeler - güncel, geçmiş ve iptal/reddedilmiş randevuları üç kategoriye ayırır
+        /// </summary>
         public async Task<IActionResult> Appointments()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -152,7 +171,9 @@ namespace proje.Controllers
             }
 
             var today = DateTime.Today;
-            var activeAppointments = await _context.Appointments
+            
+            // Güncel randevular: Bugün ve gelecekteki, tamamlanmamış, iptal edilmemiş, reddedilmemiş randevular
+            var currentAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
                 .Include(a => a.GymService)
@@ -162,11 +183,13 @@ namespace proje.Controllers
                 .Where(a => a.TrainerId == trainer.Id && 
                            a.AppointmentDate >= today && 
                            a.Status != "Completed" && 
-                           a.Status != "Cancelled")
+                           a.Status != "Cancelled" &&
+                           a.Status != "Rejected")
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 
+            // Geçmiş randevular: Tamamlanmış randevular (bugünden önce veya Completed durumunda)
             var pastAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -175,17 +198,36 @@ namespace proje.Controllers
                 .Include(a => a.GymService)
                     .ThenInclude(gs => gs.Gym)
                 .Where(a => a.TrainerId == trainer.Id && 
-                           (a.AppointmentDate < today || a.Status == "Completed" || a.Status == "Cancelled"))
+                           a.Status == "Completed" &&
+                           (a.AppointmentDate < today || a.Status == "Completed"))
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 
-            ViewBag.ActiveAppointments = activeAppointments;
-            ViewBag.PastAppointments = pastAppointments;
+            // İptal ve reddedildi randevular
+            var cancelledRejectedAppointments = await _context.Appointments
+                .Include(a => a.Member)
+                    .ThenInclude(m => m.User)
+                .Include(a => a.GymService)
+                    .ThenInclude(gs => gs.Service)
+                .Include(a => a.GymService)
+                    .ThenInclude(gs => gs.Gym)
+                .Where(a => a.TrainerId == trainer.Id && 
+                           (a.Status == "Cancelled" || a.Status == "Rejected"))
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .ToListAsync();
 
-            return View(activeAppointments);
+            ViewBag.CurrentAppointments = currentAppointments;
+            ViewBag.PastAppointments = pastAppointments;
+            ViewBag.CancelledRejectedAppointments = cancelledRejectedAppointments;
+
+            return View(currentAppointments);
         }
 
+        /// <summary>
+        /// Antrenörün geçmiş randevularını listeler - tamamlanmış randevular (artık Appointments metodunda üç kategoriye ayrıldı)
+        /// </summary>
         public async Task<IActionResult> PastAppointments()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -211,7 +253,8 @@ namespace proje.Controllers
                 .Include(a => a.GymService)
                     .ThenInclude(gs => gs.Gym)
                 .Where(a => a.TrainerId == trainer.Id && 
-                           (a.AppointmentDate < today || a.Status == "Completed" || a.Status == "Cancelled"))
+                           a.Status == "Completed" &&
+                           (a.AppointmentDate < today || a.Status == "Completed"))
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
@@ -219,6 +262,9 @@ namespace proje.Controllers
             return View(appointments);
         }
 
+        /// <summary>
+        /// Randevu durumunu günceller - Pending, Approved, Rejected, Completed, Cancelled (JSON döner, üye'ye bildirim gönderir)
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateAppointmentStatus(int id, string status)
@@ -245,7 +291,6 @@ namespace proje.Controllers
                 return Json(new { success = false, message = "Randevu bulunamadı." });
             }
 
-            // Geçerli durum kontrolü
             var validStatuses = new[] { "Pending", "Approved", "Rejected", "Completed", "Cancelled" };
             if (!validStatuses.Contains(status))
             {
@@ -261,7 +306,6 @@ namespace proje.Controllers
                 _context.Update(appointment);
                 await _context.SaveChangesAsync();
 
-                // Durum değiştiyse ve Approved/Rejected ise üye'ye bildirim gönder
                 if (oldStatus != status && (status == "Approved" || status == "Rejected"))
                 {
                     var appointmentWithDetails = await _context.Appointments
@@ -302,6 +346,9 @@ namespace proje.Controllers
             }
         }
 
+        /// <summary>
+        /// Randevu düzenleme sayfasını gösterir - üye, hizmet ve spor salonu bilgileri ile birlikte
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> EditAppointment(int? id)
         {
@@ -341,6 +388,9 @@ namespace proje.Controllers
             return View(appointment);
         }
 
+        /// <summary>
+        /// Randevu durumunu günceller - sayfa üzerinden durum değişikliği yapar
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAppointment(int id, string status)
@@ -367,7 +417,6 @@ namespace proje.Controllers
                 return NotFound();
             }
 
-            // Geçerli durum kontrolü
             var validStatuses = new[] { "Pending", "Approved", "Rejected", "Completed", "Cancelled" };
             if (!validStatuses.Contains(status))
             {
@@ -377,7 +426,6 @@ namespace proje.Controllers
 
             try
             {
-                // Sadece durumu güncelle
                 existingAppointment.Status = status;
                 existingAppointment.UpdatedDate = DateTime.Now;
 
@@ -393,6 +441,9 @@ namespace proje.Controllers
             }
         }
 
+        /// <summary>
+        /// Antrenöre hizmet ekler - antrenörün sunduğu hizmet türlerine ekler (JSON döner)
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTrainerService(int serviceId)
@@ -411,7 +462,6 @@ namespace proje.Controllers
                 return Json(new { success = false, message = "Antrenör bulunamadı." });
             }
 
-            // Aynı hizmet zaten ekli mi kontrol et
             var existingService = await _context.TrainerServices
                 .FirstOrDefaultAsync(ts => ts.TrainerId == trainer.Id && ts.ServiceId == serviceId);
             
@@ -441,6 +491,9 @@ namespace proje.Controllers
             });
         }
 
+        /// <summary>
+        /// Antrenör hizmetini siler - antrenörün sunduğu hizmet türlerinden kaldırır (JSON döner)
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTrainerService(int id)

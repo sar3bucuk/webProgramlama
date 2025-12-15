@@ -1,3 +1,9 @@
+/*
+Test verileri ve başlangıç verileri için seed controller'ı.
+Admin kullanıcısı oluşturma ve roller oluşturma işlemlerini yönetir.
+Geliştirme/test aşamasında kullanılır.
+*/
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using proje.Data;
@@ -17,12 +23,14 @@ namespace proje.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Admin kullanıcısı ve roller oluşturur - Admin, Member, Trainer rolleri ve admin hesabı (Email: g231210012@sakarya.edu.tr, Şifre: sau) (JSON döner)
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> CreateAdmin()
         {
             try
             {
-                // Rolleri oluştur
                 string[] roles = { "Admin", "Member", "Trainer" };
                 foreach (var role in roles)
                 {
@@ -32,7 +40,6 @@ namespace proje.Controllers
                     }
                 }
 
-                // Admin kullanıcısını oluştur
                 var adminEmail = "g231210012@sakarya.edu.tr";
                 var adminPassword = "sau";
 
@@ -59,13 +66,11 @@ namespace proje.Controllers
                 }
                 else
                 {
-                    // Kullanıcı var, şifreyi sıfırla
                     var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
                     var resetResult = await _userManager.ResetPasswordAsync(existingUser, token, adminPassword);
                     
                     if (resetResult.Succeeded)
                     {
-                        // Admin rolünü kontrol et
                         if (!await _userManager.IsInRoleAsync(existingUser, "Admin"))
                         {
                             await _userManager.AddToRoleAsync(existingUser, "Admin");

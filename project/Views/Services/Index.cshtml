@@ -60,13 +60,24 @@
                                         </td>
                                         <td style="color: #64748b;">@service.CreatedDate.ToString("dd.MM.yyyy")</td>
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#deleteServiceModal"
-                                                    data-service-id="@service.Id"
-                                                    data-service-name="@service.Name">
-                                                Sil
-                                            </button>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editServiceModal"
+                                                        data-service-id="@service.Id"
+                                                        data-service-name="@service.Name"
+                                                        data-service-description="@(service.Description ?? "")"
+                                                        data-service-isactive="@service.IsActive.ToString().ToLower()">
+                                                    Düzenle
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteServiceModal"
+                                                        data-service-id="@service.Id"
+                                                        data-service-name="@service.Name">
+                                                    Sil
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -128,6 +139,46 @@
     </div>
 </div>
 
+<!-- Hizmet Düzenleme Modal -->
+<div class="modal fade" id="editServiceModal" tabindex="-1" aria-labelledby="editServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editServiceModalLabel">Hizmet Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editServiceForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editServiceId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Hizmet Adı</label>
+                        <input type="text" id="editServiceName" name="Name" class="form-control-modern" placeholder="Örn: Fitness, Yoga, Pilates" required />
+                        <span class="text-danger" id="editNameError"></span>
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Açıklama</label>
+                        <textarea id="editServiceDescription" name="Description" class="form-control-modern" rows="4" placeholder="Hizmet hakkında açıklama yazın..."></textarea>
+                        <span class="text-danger" id="editDescriptionError"></span>
+                    </div>
+
+                    <div class="form-group-modern form-check-modern">
+                        <input type="checkbox" id="editServiceIsActive" name="IsActive" class="form-check-input-modern" />
+                        <label class="form-check-label-modern" for="editServiceIsActive">Aktif</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditService()">Güncelle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Silme Onay Modal -->
 <div class="modal fade" id="deleteServiceModal" tabindex="-1" aria-labelledby="deleteServiceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -161,6 +212,22 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const editModal = document.getElementById('editServiceModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const serviceId = button.getAttribute('data-service-id');
+                const serviceName = button.getAttribute('data-service-name');
+                const serviceDescription = button.getAttribute('data-service-description') || '';
+                const serviceIsActive = button.getAttribute('data-service-isactive') === 'true';
+                
+                document.getElementById('editServiceId').value = serviceId;
+                document.getElementById('editServiceName').value = serviceName;
+                document.getElementById('editServiceDescription').value = serviceDescription;
+                document.getElementById('editServiceIsActive').checked = serviceIsActive;
+            });
+        }
+
         const deleteModal = document.getElementById('deleteServiceModal');
         if (deleteModal) {
             deleteModal.addEventListener('show.bs.modal', function(event) {
@@ -173,13 +240,20 @@
             });
         }
 
-        // Modal kapandığında formu temizle
         const addModal = document.getElementById('addServiceModal');
         if (addModal) {
             addModal.addEventListener('hidden.bs.modal', function() {
                 document.getElementById('addServiceForm').reset();
                 document.getElementById('nameError').textContent = '';
                 document.getElementById('descriptionError').textContent = '';
+            });
+        }
+
+        if (editModal) {
+            editModal.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('editServiceForm').reset();
+                document.getElementById('editNameError').textContent = '';
+                document.getElementById('editDescriptionError').textContent = '';
             });
         }
     });
@@ -189,7 +263,6 @@
         const description = document.getElementById('serviceDescription').value.trim();
         const isActive = document.getElementById('serviceIsActive').checked;
 
-        // Validasyon
         if (!name) {
             document.getElementById('nameError').textContent = 'Hizmet adı gereklidir.';
             return;
@@ -214,7 +287,6 @@
         })
         .then(response => {
             if (response.redirected) {
-                // Başarılı, sayfayı yenile
                 window.location.href = response.url;
             } else {
                 return response.text();
@@ -222,13 +294,57 @@
         })
         .then(html => {
             if (html) {
-                // Hata varsa göster
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const validationSummary = doc.querySelector('.validation-summary-errors');
                 if (validationSummary) {
                     alert('Lütfen formu kontrol edin.');
                 }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+
+    function submitEditService() {
+        const id = document.getElementById('editServiceId').value;
+        const name = document.getElementById('editServiceName').value.trim();
+        const description = document.getElementById('editServiceDescription').value.trim();
+        const isActive = document.getElementById('editServiceIsActive').checked;
+
+        if (!name) {
+            document.getElementById('editNameError').textContent = 'Hizmet adı gereklidir.';
+            return;
+        }
+
+        document.getElementById('editNameError').textContent = '';
+        document.getElementById('editDescriptionError').textContent = '';
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        
+        fetch('@Url.Action("Edit", "Services")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: new URLSearchParams({
+                Id: id,
+                Name: name,
+                Description: description,
+                IsActive: isActive
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editServiceModal'));
+                modal.hide();
+                location.reload();
+            } else {
+                alert(data.message || 'Hizmet güncellenirken bir hata oluştu.');
             }
         })
         .catch(error => {

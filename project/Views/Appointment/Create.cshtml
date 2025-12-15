@@ -161,7 +161,6 @@
     <script>
         let currentDuration = 0;
 
-        // Sayfa yüklendiğinde seçili değerleri geri yükle
         window.addEventListener('DOMContentLoaded', function() {
             const hasGym = @(hasGym ? "true" : "false");
             const memberGymId = '@memberGymId';
@@ -169,7 +168,6 @@
             const selectedTrainerId = '@ViewBag.SelectedTrainerId';
             
             if (hasGym && memberGymId && memberGymId !== '0') {
-                // Hizmetleri otomatik yükle
                 loadGymServices(memberGymId);
             }
         });
@@ -182,7 +180,7 @@
             trainerSelect.innerHTML = '<option value="">Önce tarih, saat ve hizmet seçin</option>';
             document.getElementById('trainerInfo').style.display = 'none';
 
-            fetch('@Url.Action("GetGymServices", "Appointment")?gymId=' + gymId, {
+            fetch('/api/AppointmentsApi/gym-services/' + gymId, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -201,7 +199,6 @@
                         serviceSelect.appendChild(option);
                     });
                     
-                    // Hata durumunda seçili değeri geri yükle
                     const selectedServiceId = '@ViewBag.SelectedGymServiceId';
                     if (selectedServiceId && selectedServiceId !== '0') {
                         serviceSelect.value = selectedServiceId;
@@ -224,7 +221,6 @@
             const selectedOption = this.options[this.selectedIndex];
             if (selectedOption.value) {
                 currentDuration = parseInt(selectedOption.getAttribute('data-duration'));
-                // Hidden input'a değeri set et
                 document.getElementById('GymServiceId').value = selectedOption.value;
                 checkAvailability();
             } else {
@@ -245,13 +241,12 @@
             const gymServiceId = document.getElementById('serviceSelect').value;
             const appointmentDate = document.getElementById('AppointmentDate').value;
             const appointmentTime = document.getElementById('AppointmentTime').value;
-
             const trainerSelect = document.getElementById('trainerSelect');
             trainerSelect.innerHTML = '<option value="">Yükleniyor...</option>';
             document.getElementById('trainerInfo').style.display = 'none';
 
             if (gymId && gymServiceId && appointmentDate && appointmentTime && currentDuration > 0) {
-                const url = '@Url.Action("GetAvailableTrainers", "Appointment")' + 
+                const url = '/api/AppointmentsApi/available-trainers' + 
                     '?gymId=' + encodeURIComponent(gymId) +
                     '&gymServiceId=' + encodeURIComponent(gymServiceId) +
                     '&appointmentDate=' + encodeURIComponent(appointmentDate) +
@@ -277,7 +272,6 @@
                                 trainerSelect.appendChild(option);
                             });
                             
-                            // Hata durumunda seçili antrenörü geri yükle
                             const selectedTrainerId = '@ViewBag.SelectedTrainerId';
                             if (selectedTrainerId && selectedTrainerId !== '0') {
                                 trainerSelect.value = selectedTrainerId;
@@ -305,7 +299,6 @@
             const trainerInfo = document.getElementById('trainerInfo');
             const trainerDetails = document.getElementById('trainerDetails');
 
-            // Hidden input'a değeri set et
             if (selectedOption.value) {
                 document.getElementById('TrainerId').value = selectedOption.value;
                 
@@ -321,7 +314,6 @@
             }
         });
 
-        // Form submit öncesi kontrol
         document.getElementById('appointmentForm').addEventListener('submit', function(e) {
             const hasGym = @(hasGym ? "true" : "false");
             
@@ -347,7 +339,6 @@
             console.log('Form submit - GymServiceId (hidden before):', gymServiceIdHidden.value, 'TrainerId (hidden before):', trainerIdHidden.value);
             console.log('Form submit - Date:', appointmentDate, 'Time:', appointmentTime);
             
-            // Değerleri integer'a çevir ve kontrol et
             const serviceIdNum = parseInt(gymServiceId);
             const trainerIdNum = parseInt(trainerId);
             
@@ -379,11 +370,9 @@
                 return false;
             }
             
-            // Hidden input'lardaki değerleri güncelle (submit'ten önce kesinlikle set et)
             gymServiceIdHidden.value = serviceIdNum.toString();
             trainerIdHidden.value = trainerIdNum.toString();
             
-            // Name attribute'larını da kontrol et
             if (!gymServiceIdHidden.name || gymServiceIdHidden.name === '') {
                 gymServiceIdHidden.setAttribute('name', 'GymServiceId');
             }

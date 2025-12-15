@@ -2,8 +2,9 @@
 @{
     ViewData["Title"] = "Randevular";
     Layout = "_Layout";
-    var activeAppointments = ViewBag.ActiveAppointments as IEnumerable<proje.Models.Appointment> ?? Model;
+    var currentAppointments = ViewBag.CurrentAppointments as IEnumerable<proje.Models.Appointment> ?? Model;
     var pastAppointments = ViewBag.PastAppointments as IEnumerable<proje.Models.Appointment> ?? new List<proje.Models.Appointment>();
+    var cancelledRejectedAppointments = ViewBag.CancelledRejectedAppointments as IEnumerable<proje.Models.Appointment> ?? new List<proje.Models.Appointment>();
 }
 
 <div class="auth-page-modern">
@@ -31,11 +32,11 @@
                 <!-- Tab Navigation -->
                 <ul class="nav nav-tabs mt-4" id="appointmentTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
-                            Aktif Randevular
-                            @if (activeAppointments.Any())
+                        <button class="nav-link active" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab">
+                            Güncel Randevular
+                            @if (currentAppointments.Any())
                             {
-                                <span class="badge bg-primary ms-2">@activeAppointments.Count()</span>
+                                <span class="badge bg-primary ms-2">@currentAppointments.Count()</span>
                             }
                         </button>
                     </li>
@@ -44,7 +45,16 @@
                             Geçmiş Randevular
                             @if (pastAppointments.Any())
                             {
-                                <span class="badge bg-secondary ms-2">@pastAppointments.Count()</span>
+                                <span class="badge bg-success ms-2">@pastAppointments.Count()</span>
+                            }
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab">
+                            İptal ve Reddedildi
+                            @if (cancelledRejectedAppointments.Any())
+                            {
+                                <span class="badge bg-danger ms-2">@cancelledRejectedAppointments.Count()</span>
                             }
                         </button>
                     </li>
@@ -52,10 +62,10 @@
 
                 <!-- Tab Content -->
                 <div class="tab-content mt-3" id="appointmentTabContent">
-                    <!-- Active Appointments Tab -->
-                    <div class="tab-pane fade show active" id="active" role="tabpanel">
+                    <!-- Current Appointments Tab -->
+                    <div class="tab-pane fade show active" id="current" role="tabpanel">
                         <div class="appointments-table-card">
-                            @if (activeAppointments != null && activeAppointments.Any())
+                            @if (currentAppointments != null && currentAppointments.Any())
                             {
                                 <table class="table table-hover">
                                     <thead>
@@ -73,7 +83,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var appointment in activeAppointments)
+                                        @foreach (var appointment in currentAppointments)
                                         {
                                             <tr>
                                                 <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
@@ -129,7 +139,7 @@
                             else
                             {
                                 <div class="text-center text-muted py-5">
-                                    <p>Henüz randevu bulunmamaktadır.</p>
+                                    <p>Güncel randevu bulunmamaktadır.</p>
                                 </div>
                             }
                         </div>
@@ -198,6 +208,65 @@
                             {
                                 <div class="text-center text-muted py-5">
                                     <p>Geçmiş randevu bulunmamaktadır.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Cancelled and Rejected Appointments Tab -->
+                    <div class="tab-pane fade" id="cancelled" role="tabpanel">
+                        <div class="appointments-table-card">
+                            @if (cancelledRejectedAppointments != null && cancelledRejectedAppointments.Any())
+                            {
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Saat</th>
+                                            <th>Üye</th>
+                                            <th>Antrenör</th>
+                                            <th>Spor Salonu</th>
+                                            <th>Hizmet</th>
+                                            <th>Süre</th>
+                                            <th>Ücret</th>
+                                            <th>Durum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var appointment in cancelledRejectedAppointments)
+                                        {
+                                            <tr>
+                                                <td><strong style="color: #1e293b;">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</strong></td>
+                                                <td style="color: #64748b;">@appointment.AppointmentTime.ToString(@"hh\:mm")</td>
+                                                <td style="color: #64748b;">@appointment.Member?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.Trainer?.FullName</td>
+                                                <td style="color: #64748b;">@appointment.Trainer?.Gym?.Name</td>
+                                                <td style="color: #64748b;">@appointment.GymService?.Service?.Name</td>
+                                                <td style="color: #64748b;">@appointment.Duration dakika</td>
+                                                <td style="color: #64748b;">@appointment.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                                <td>
+                                                    @switch (appointment.Status)
+                                                    {
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Reddedildi</span>
+                                                            break;
+                                                        case "Cancelled":
+                                                            <span class="badge bg-secondary">İptal Edildi</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@appointment.Status</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-5">
+                                    <p>İptal edilmiş veya reddedilmiş randevu bulunmamaktadır.</p>
                                 </div>
                             }
                         </div>

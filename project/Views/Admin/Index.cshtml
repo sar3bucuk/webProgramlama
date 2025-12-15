@@ -78,11 +78,11 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <a href="@Url.Action("GymDetails", "Admin", new { id = gym.GymId })" 
+                                                <a href="@Url.Action("Details", "Gyms", new { id = gym.GymId })" 
                                                    class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye"></i> Detaylar
                                                 </a>
-                                                <a href="@Url.Action("EditGym", "Admin", new { id = gym.GymId })" 
+                                                <a href="@Url.Action("Edit", "Gyms", new { id = gym.GymId })" 
                                                    class="btn btn-sm btn-outline-secondary">
                                                     <i class="bi bi-pencil"></i> Düzenle
                                                 </a>
@@ -111,25 +111,48 @@
                     </div>
                 </div>
 
-                <!-- Hızlı Erişim Butonları -->
+                <!-- Hızlı Erişim Kartları -->
                 <div class="quick-access-section">
                     <h3 class="section-title">Hızlı Erişim</h3>
-                    <div class="quick-access-buttons">
-                        <a href="@Url.Action("Gyms", "Admin")" class="btn btn-primary">
-                            <i class="bi bi-building"></i> Spor Salonları Yönet
-                        </a>
-                        <a href="@Url.Action("Members", "Admin")" class="btn btn-success">
-                            <i class="bi bi-people"></i> Üyeler
-                        </a>
-                        <a href="@Url.Action("Trainers", "Admin")" class="btn btn-warning">
-                            <i class="bi bi-person-badge"></i> Antrenörler
-                        </a>
-                        <a href="@Url.Action("Index", "Services")" class="btn btn-info">
-                            <i class="bi bi-gear"></i> Hizmetler
-                        </a>
-                        <a href="@Url.Action("Appointments", "Admin")" class="btn btn-purple">
-                            <i class="bi bi-calendar-check"></i> Randevular
-                        </a>
+                    <div class="quick-access-cards">
+                        <!-- Spor Salonları Kartı -->
+                        <div class="quick-access-card">
+                            <span class="card-number">01</span>
+                            <div class="card-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <h4 class="card-title">Spor Salonları</h4>
+                            <p class="card-description">Spor salonlarınızı yönetin, yeni salon ekleyin, mevcut salonları düzenleyin ve hizmetlerini yapılandırın.</p>
+                            <a href="@Url.Action("Index", "Gyms")" class="card-button">
+                                Salonları Yönet
+                            </a>
+                        </div>
+
+                        <!-- Üyeler Kartı -->
+                        <div class="quick-access-card">
+                            <span class="card-number">02</span>
+                            <div class="card-icon">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <h4 class="card-title">Üyeler</h4>
+                            <p class="card-description">Üyelerinizi yönetin, bilgilerini görüntüleyin ve düzenleyin.</p>
+                            <a href="@Url.Action("Members", "Admin")" class="card-button">
+                                Üyeleri Yönet
+                            </a>
+                        </div>
+
+                        <!-- Antrenörler Kartı -->
+                        <div class="quick-access-card">
+                            <span class="card-number">03</span>
+                            <div class="card-icon">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <h4 class="card-title">Antrenörler</h4>
+                            <p class="card-description">Antrenörlerinizi yönetin, bilgilerini görüntüleyin ve düzenleyin.</p>
+                            <a href="@Url.Action("Trainers", "Admin")" class="card-button">
+                                Antrenörleri Yönet
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -231,39 +254,104 @@
         margin-bottom: 1.5rem;
     }
 
-    .quick-access-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
+    .quick-access-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
     }
 
-    .quick-access-buttons .btn {
-        flex: 1;
-        min-width: 150px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        border-radius: 8px;
+    .quick-access-card {
+        position: relative;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+    }
+
+    .quick-access-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .quick-access-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .card-number {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 4rem;
+        font-weight: 700;
+        color: rgba(226, 232, 240, 0.5);
+        line-height: 1;
+        z-index: 0;
+    }
+
+    .card-icon {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
-        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 1.5rem;
+        z-index: 1;
     }
 
-    .quick-access-buttons .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-purple {
-        background-color: #8b5cf6;
-        border-color: #8b5cf6;
+    .card-icon i {
+        font-size: 1.75rem;
         color: white;
     }
 
-    .btn-purple:hover {
-        background-color: #7c3aed;
-        border-color: #7c3aed;
+    .card-title {
+        position: relative;
+        color: #1e293b;
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        z-index: 1;
+    }
+
+    .card-description {
+        position: relative;
+        color: #64748b;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        z-index: 1;
+    }
+
+    .card-button {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        z-index: 1;
+    }
+
+    .card-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         color: white;
     }
 </style>

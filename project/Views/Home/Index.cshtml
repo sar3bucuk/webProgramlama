@@ -42,8 +42,8 @@
                         Sisteminizin genel durumunu buradan takip edin ve yönetim işlemlerinizi kolayca gerçekleştirin.
                     </p>
                     <div class="hero-cta-modern">
-                        <a href="@Url.Action("Gyms", "Admin")" class="btn-modern-primary">🏋️ Spor Salonlarını Yönet</a>
-                        <a href="@Url.Action("Index", "Services")" class="btn-modern-secondary">⚙️ Hizmetleri Yönet</a>
+                        <a href="@Url.Action("Index", "Gyms")" class="btn-modern-primary">🏋️ Salonları Yönet</a>
+                        <a href="@Url.Action("Members", "Admin")" class="btn-modern-secondary">👥 Üyeler</a>
                     </div>
                 }
                 else
@@ -89,31 +89,31 @@
                     <p class="service-text-modern">
                         Spor salonlarınızı yönetin, yeni salon ekleyin, mevcut salonları düzenleyin ve hizmetlerini yapılandırın.
                     </p>
-                    <a href="@Url.Action("Gyms", "Admin")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Spor Salonlarını Yönet</a>
+                    <a href="@Url.Action("Index", "Gyms")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Salonları Yönet</a>
                 </div>
 
                 <div class="service-card-modern">
                     <div class="service-number">02</div>
                     <div class="service-icon-modern">
-                        <i class="bi bi-gear"></i>
+                        <i class="bi bi-people"></i>
                     </div>
-                    <h3 class="service-title-modern">Hizmetler</h3>
+                    <h3 class="service-title-modern">Üyeler</h3>
                     <p class="service-text-modern">
-                        Sistemdeki hizmetleri yönetin, yeni hizmetler ekleyin ve mevcut hizmetleri düzenleyin.
+                        Üyelerinizi yönetin, bilgilerini görüntüleyin ve düzenleyin.
                     </p>
-                    <a href="@Url.Action("Index", "Services")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Hizmetleri Yönet</a>
+                    <a href="@Url.Action("Members", "Admin")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Üyeleri Yönet</a>
                 </div>
 
                 <div class="service-card-modern">
                     <div class="service-number">03</div>
                     <div class="service-icon-modern">
-                        <i class="bi bi-people"></i>
+                        <i class="bi bi-person-badge"></i>
                     </div>
-                    <h3 class="service-title-modern">Üyeler & Antrenörler</h3>
+                    <h3 class="service-title-modern">Antrenörler</h3>
                     <p class="service-text-modern">
-                        Üyelerinizi ve antrenörlerinizi yönetin, bilgilerini görüntüleyin ve düzenleyin.
+                        Antrenörlerinizi yönetin, bilgilerini görüntüleyin ve düzenleyin.
                     </p>
-                    <a href="#" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Yakında</a>
+                    <a href="@Url.Action("Trainers", "Admin")" class="btn-modern-primary" style="margin-top: 1rem; display: inline-block;">Antrenörleri Yönet</a>
                 </div>
             </div>
         </div>
@@ -175,7 +175,6 @@ else
 
 @section Scripts {
     <script>
-        // Modern hero video carousel
         document.addEventListener('DOMContentLoaded', function() {
             const carousel = document.querySelector('#videoCarousel');
             if (carousel) {
@@ -185,7 +184,6 @@ else
                     pause: false
                 });
 
-                // Video carousel değiştiğinde videoları yeniden başlat
                 carousel.addEventListener('slide.bs.carousel', function (e) {
                     const videos = this.querySelectorAll('video');
                     videos.forEach(video => {
@@ -201,7 +199,6 @@ else
                     }
                 });
 
-                // İlk videoyu başlat
                 const firstVideo = carousel.querySelector('.carousel-item.active video');
                 if (firstVideo) {
                     firstVideo.play().catch(err => console.log('Video play error:', err));

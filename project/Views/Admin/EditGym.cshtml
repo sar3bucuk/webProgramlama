@@ -22,7 +22,7 @@
                 </div>
             }
 
-            <form asp-action="EditGym" method="post" class="auth-form-modern" id="editGymForm">
+            <form asp-controller="Gyms" asp-action="Edit" method="post" class="auth-form-modern" id="editGymForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -73,13 +73,33 @@
                     </div>
                 </div>
 
+                <div class="form-group-modern">
+                    <label class="form-label-modern">Çalışma Günleri</label>
+                    <div class="working-days-container">
+                        @{
+                            var dayNames = new[] { "Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi" };
+                            var selectedDays = Model?.WorkingDaysList ?? new List<int>();
+                        }
+                        @for (int i = 0; i < dayNames.Length; i++)
+                        {
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input working-day-checkbox" type="checkbox" name="SelectedDays" value="@i" id="day@i" 
+                                       @(selectedDays.Contains(i) ? "checked" : "") />
+                                <label class="form-check-label" for="day@i">@dayNames[i]</label>
+                            </div>
+                        }
+                    </div>
+                    <input type="hidden" asp-for="WorkingDays" id="WorkingDays" />
+                    <span asp-validation-for="WorkingDays" class="text-danger"></span>
+                </div>
+
                 <div class="form-group-modern form-check-modern">
                     <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" />
                     <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
                 </div>
 
                 <div class="form-actions-modern">
-                    <a href="@Url.Action("Gyms", "Admin")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <a href="@Url.Action("Index", "Gyms")" class="btn-auth-modern btn-secondary-modern">İptal</a>
                     <button type="submit" class="btn-auth-modern">Güncelle</button>
                 </div>
             </form>
@@ -280,7 +300,6 @@
             const gymId = document.getElementById('gymId').value;
             const serviceId = document.getElementById('serviceId').value;
             const duration = document.getElementById('duration').value;
-            // Virgülü noktaya çevir ve parse et
             const priceInput = document.getElementById('price').value.replace(',', '.');
             const price = parseFloat(priceInput);
             const isActive = document.getElementById('isActive').checked;
@@ -290,13 +309,12 @@
                 return;
             }
 
-            // Nokta ile formatla (InvariantCulture)
             const priceFormatted = price.toFixed(2).replace(',', '.');
 
             const token = document.querySelector('#editGymForm input[name="__RequestVerificationToken"]')?.value || 
                          document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             
-            fetch('@Url.Action("AddGymService", "Admin")', {
+            fetch('@Url.Action("AddGymService", "Gyms")', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -345,7 +363,6 @@
         function updateGymService() {
             const id = document.getElementById('editGymServiceId').value;
             const duration = parseInt(document.getElementById('editDuration').value);
-            // Virgülü noktaya çevir ve parse et
             const priceInput = document.getElementById('editPrice').value.replace(',', '.');
             const price = parseFloat(priceInput);
             const isActive = document.getElementById('editIsActive').checked;
@@ -355,13 +372,12 @@
                 return;
             }
 
-            // Nokta ile formatla (InvariantCulture)
             const priceFormatted = price.toFixed(2).replace(',', '.');
 
             const token = document.querySelector('#editGymForm input[name="__RequestVerificationToken"]')?.value || 
                          document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             
-            fetch('@Url.Action("UpdateGymService", "Admin")', {
+            fetch('@Url.Action("UpdateGymService", "Gyms")', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -388,7 +404,6 @@
             });
         }
 
-        // Silme modal'ını aç
         document.addEventListener('DOMContentLoaded', function() {
             const deleteModal = document.getElementById('deleteServiceModal');
             if (deleteModal) {
@@ -403,13 +418,37 @@
             }
         });
 
+        // Çalışma günleri checkbox'larını güncelle
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.working-day-checkbox');
+            const hiddenInput = document.getElementById('WorkingDays');
+            
+            if (!hiddenInput || !checkboxes.length) return;
+            
+            function updateWorkingDays() {
+                const selectedDays = Array.from(checkboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => parseInt(cb.value))
+                    .sort((a, b) => a - b);
+                
+                hiddenInput.value = selectedDays.length > 0 ? selectedDays.join(',') : '';
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateWorkingDays);
+            });
+            
+            // İlk yüklemede de güncelle
+            updateWorkingDays();
+        });
+
         function confirmDeleteGymService() {
             const id = document.getElementById('deleteGymServiceId').value;
 
             const token = document.querySelector('#editGymForm input[name="__RequestVerificationToken"]')?.value || 
                          document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             
-            fetch('@Url.Action("DeleteGymService", "Admin")', {
+            fetch('@Url.Action("DeleteGymService", "Gyms")', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -422,10 +461,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Modal'ı kapat
                     const modal = bootstrap.Modal.getInstance(document.getElementById('deleteServiceModal'));
                     modal.hide();
-                    // Sayfayı yenile
                     location.reload();
                 } else {
                     alert(data.message || 'Hizmet silinirken bir hata oluştu.');
@@ -468,6 +505,25 @@
         background: #475569;
         color: white;
         text-decoration: none;
+    }
+
+    .working-days-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .working-days-container .form-check {
+        margin: 0;
+    }
+    
+    .working-days-container .form-check-label {
+        margin-left: 0.5rem;
+        cursor: pointer;
     }
 
     .services-section {

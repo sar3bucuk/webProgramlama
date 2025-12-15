@@ -33,7 +33,7 @@
                                     Admin Paneli
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Gyms">🏋️ Spor Salonları</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Gyms" asp-action="Index">🏋️ Spor Salonları</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Members">👥 Üyeler</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Trainers">👨‍🏫 Antrenörler</a></li>
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Appointments">📅 Randevular</a></li>
@@ -175,9 +175,8 @@
     {
         <script>
             $(document).ready(function() {
-                // Bildirim sayısını yükle
                 function loadNotificationCount() {
-                    $.get('@Url.Action("GetUnreadNotificationCount", "Account")', function(data) {
+                    $.get('/api/NotificationsApi/unread-count', function(data) {
                         if (data.success && data.count > 0) {
                             $('#notificationBadge').text(data.count).show();
                         } else {
@@ -186,9 +185,8 @@
                     });
                 }
 
-                // Bildirimleri yükle
                 function loadNotifications() {
-                    $.get('@Url.Action("GetNotifications", "Account")', function(data) {
+                    $.get('/api/NotificationsApi', function(data) {
                         if (data.success && data.notifications.length > 0) {
                             var html = '';
                             var userRole = $('.notification-dropdown').data('user-role') || 'Member';
@@ -219,23 +217,19 @@
                     });
                 }
 
-                // Bildirim öğesine tıklandığında okundu işaretle ve yönlendir
                 $(document).on('click', '.notification-item a', function(e) {
                     e.preventDefault();
                     var notificationId = $(this).data('notification-id');
                     var appointmentId = $(this).data('appointment-id');
                     var userRole = $(this).data('user-role');
                     
-                    // Bildirimi okundu işaretle
                     if (notificationId) {
-                        $.post('@Url.Action("MarkNotificationAsRead", "Account")', {
-                            id: notificationId,
+                        $.post('/api/NotificationsApi/mark-read/' + notificationId, {
                             __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                         }, function(data) {
                             if (data.success) {
                                 loadNotificationCount();
                                 
-                                // Rolüne göre yönlendir
                                 var redirectUrl = '';
                                 if (userRole === 'Admin') {
                                     redirectUrl = '@Url.Action("Appointments", "Admin")';
@@ -245,7 +239,6 @@
                                     redirectUrl = '@Url.Action("MyAppointments", "Appointment")';
                                 }
                                 
-                                // AppointmentId varsa URL'e ekle (sayfa yüklendiğinde scroll yapılabilir)
                                 if (appointmentId) {
                                     redirectUrl += '?highlight=' + appointmentId;
                                 }
@@ -256,11 +249,10 @@
                     }
                 });
 
-                // Tümünü okundu işaretle
                 $('#markAllReadBtn').click(function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    $.post('@Url.Action("MarkAllNotificationsAsRead", "Account")', {
+                    $.post('/api/NotificationsApi/mark-all-read', {
                         __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                     }, function(data) {
                         if (data.success) {
@@ -270,15 +262,12 @@
                     });
                 });
 
-                // Dropdown açıldığında bildirimleri yükle
                 $('#notificationBell').on('click', function() {
                     loadNotifications();
                 });
 
-                // İlk yükleme
                 loadNotificationCount();
 
-                // Her 30 saniyede bir bildirim sayısını güncelle
                 setInterval(loadNotificationCount, 30000);
             });
         </script>

@@ -13,7 +13,7 @@
                 <p class="auth-subtitle-modern">Sisteme yeni bir spor salonu ekleyin</p>
             </div>
 
-            <form asp-action="CreateGym" method="post" class="auth-form-modern">
+            <form asp-controller="Gyms" asp-action="Create" method="post" class="auth-form-modern">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="form-group-modern">
@@ -62,6 +62,26 @@
                     </div>
                 </div>
 
+                <div class="form-group-modern">
+                    <label class="form-label-modern">Çalışma Günleri</label>
+                    <div class="working-days-container">
+                        @{
+                            var dayNames = new[] { "Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi" };
+                            var selectedDays = Model?.WorkingDaysList ?? new List<int>();
+                        }
+                        @for (int i = 0; i < dayNames.Length; i++)
+                        {
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input working-day-checkbox" type="checkbox" name="SelectedDays" value="@i" id="day@i" 
+                                       @(selectedDays.Contains(i) ? "checked" : "") />
+                                <label class="form-check-label" for="day@i">@dayNames[i]</label>
+                            </div>
+                        }
+                    </div>
+                    <input type="hidden" asp-for="WorkingDays" id="WorkingDays" />
+                    <span asp-validation-for="WorkingDays" class="text-danger"></span>
+                </div>
+
                 <div class="form-group-modern form-check-modern">
                     <input asp-for="IsActive" class="form-check-input-modern" type="checkbox" checked />
                     <label asp-for="IsActive" class="form-check-label-modern">Aktif</label>
@@ -69,7 +89,7 @@
 
                 <div class="form-actions-modern">
                     <button type="submit" class="btn-auth-modern">Kaydet</button>
-                    <a href="@Url.Action("Gyms", "Admin")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <a href="@Url.Action("Index", "Gyms")" class="btn-auth-modern btn-secondary-modern">İptal</a>
                 </div>
             </form>
         </div>
@@ -78,7 +98,50 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.working-day-checkbox');
+            const hiddenInput = document.getElementById('WorkingDays');
+            
+            function updateWorkingDays() {
+                const selectedDays = Array.from(checkboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => parseInt(cb.value))
+                    .sort((a, b) => a - b);
+                
+                hiddenInput.value = selectedDays.length > 0 ? selectedDays.join(',') : '';
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateWorkingDays);
+            });
+            
+            // İlk yüklemede de güncelle
+            updateWorkingDays();
+        });
+    </script>
 }
+
+<style>
+    .working-days-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .working-days-container .form-check {
+        margin: 0;
+    }
+    
+    .working-days-container .form-check-label {
+        margin-left: 0.5rem;
+        cursor: pointer;
+    }
+</style>
 
 <style>
     .form-actions-modern {

@@ -1,3 +1,9 @@
+/*
+Üye profil yönetimi controller'ı.
+Üyelerin profil bilgilerini görüntüleme ve düzenleme işlemlerini yönetir.
+Sadece kendi profil bilgilerini düzenleyebilirler (GymId hariç - bu Admin tarafından yönetilir).
+*/
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +25,9 @@ namespace proje.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Üyenin profil sayfasını gösterir - kullanıcı ve spor salonu bilgileri ile birlikte
+        /// </summary>
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -40,6 +49,9 @@ namespace proje.Controllers
             return View(member);
         }
 
+        /// <summary>
+        /// Üye profil düzenleme form sayfasını gösterir - aktif spor salonları listesi ile birlikte
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Edit()
         {
@@ -62,6 +74,9 @@ namespace proje.Controllers
             return View(member);
         }
 
+        /// <summary>
+        /// Üye profil bilgilerini günceller - ad, soyad, telefon, doğum tarihi, cinsiyet, boy, kilo, vücut tipi, sağlık durumu (GymId değiştirilemez, Admin yönetir)
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Member member)
@@ -80,11 +95,10 @@ namespace proje.Controllers
                 return NotFound();
             }
 
-            // UserId validation hatasını temizle (zaten mevcut)
             ModelState.Remove("UserId");
             ModelState.Remove("User");
             ModelState.Remove("Gym");
-            ModelState.Remove("GymId"); // Üyeler spor salonunu değiştiremez
+            ModelState.Remove("GymId");
             ModelState.Remove("Appointments");
             ModelState.Remove("AIRecommendations");
 
@@ -92,8 +106,6 @@ namespace proje.Controllers
             {
                 try
                 {
-                    // Sadece üyenin düzenleyebileceği alanları güncelle
-                    // GymId değiştirilemez - sadece admin değiştirebilir
                     existingMember.FirstName = member.FirstName;
                     existingMember.LastName = member.LastName;
                     existingMember.Phone = member.Phone;
@@ -103,7 +115,6 @@ namespace proje.Controllers
                     existingMember.Weight = member.Weight;
                     existingMember.BodyType = member.BodyType;
                     existingMember.HealthConditions = member.HealthConditions;
-                    // existingMember.GymId = member.GymId; // Üyeler spor salonunu değiştiremez
                     existingMember.UpdatedDate = DateTime.Now;
 
                     _context.Update(existingMember);
@@ -129,7 +140,6 @@ namespace proje.Controllers
             }
             else
             {
-                // ModelState hatalarını göster
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 foreach (var error in errors)
                 {

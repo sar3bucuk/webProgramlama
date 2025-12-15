@@ -410,9 +410,7 @@ C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\proje.Ra
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\rjimswa.dswa.cache.json
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
-C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\scopedcss\bundle\proje.styles.css
-C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\scopedcss\projectbundle\proje.bundle.scp.css
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\saren\OneDrive\Desktop\webProgramlama\project\obj\Debug\net8.0\staticwebassets.development.json

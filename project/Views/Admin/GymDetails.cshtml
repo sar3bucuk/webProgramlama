@@ -15,7 +15,7 @@
                             <h2>@Model.Name - Detaylar</h2>
                             <p class="text-muted">Spor salonu bilgileri ve bağlı antrenörler</p>
                         </div>
-                        <a href="@Url.Action("Gyms", "Admin")" class="btn btn-secondary">
+                        <a href="@Url.Action("Index", "Gyms")" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> Geri Dön
                         </a>
                     </div>
@@ -44,6 +44,10 @@
                         <div class="detail-item">
                             <strong>Çalışma Saatleri:</strong>
                             <span>@Model.OpeningTime.ToString(@"hh\:mm") - @Model.ClosingTime.ToString(@"hh\:mm")</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Çalışma Günleri:</strong>
+                            <span>@(string.IsNullOrWhiteSpace(Model.WorkingDays) ? "Belirtilmemiş" : Model.WorkingDaysText)</span>
                         </div>
                         <div class="detail-item">
                             <strong>Durum:</strong>

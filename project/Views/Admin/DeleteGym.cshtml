@@ -11,7 +11,7 @@
                 <div class="admin-card">
                     <div class="card-header-custom danger">
                         <h3>⚠️ Spor Salonu Sil</h3>
-                        <a href="@Url.Action("Gyms", "Admin")" class="btn btn-sm btn-outline-light">← Geri Dön</a>
+                        <a href="@Url.Action("Index", "Gyms")" class="btn btn-sm btn-outline-light">← Geri Dön</a>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-warning">
@@ -54,11 +54,12 @@
                             </div>
                         </div>
 
-                        <form asp-action="DeleteGym" method="post">
+                        <form asp-controller="Gyms" asp-action="Delete" method="post">
+                            @Html.AntiForgeryToken()
                             <input type="hidden" asp-for="Id" />
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-danger btn-lg">Evet, Sil</button>
-                                <a href="@Url.Action("Gyms", "Admin")" class="btn btn-secondary btn-lg">İptal</a>
+                                <a href="@Url.Action("Index", "Gyms")" class="btn btn-secondary btn-lg">İptal</a>
                             </div>
                         </form>
                     </div>

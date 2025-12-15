@@ -16,7 +16,7 @@
                             <h2>Spor Salonları</h2>
                             <p class="text-muted">Spor salonlarını yönetin</p>
                         </div>
-                        <a href="@Url.Action("CreateGym", "Admin")" class="btn btn-primary">
+                        <a href="@Url.Action("Create", "Gyms")" class="btn btn-primary">
                             <span>+</span> Yeni Spor Salonu Ekle
                         </a>
                     </div>
@@ -66,10 +66,10 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="@Url.Action("GymDetails", "Admin", new { id = gym.Id })" class="btn btn-sm btn-outline-info" title="Detaylar">
+                                                <a href="@Url.Action("Details", "Gyms", new { id = gym.Id })" class="btn btn-sm btn-outline-info" title="Detaylar">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <a href="@Url.Action("EditGym", "Admin", new { id = gym.Id })" class="btn btn-sm btn-outline-primary">
+                                                <a href="@Url.Action("Edit", "Gyms", new { id = gym.Id })" class="btn btn-sm btn-outline-primary">
                                                     Düzenle
                                                 </a>
                                                 <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" 
@@ -90,7 +90,7 @@
                             {
                                 <tr>
                                     <td colspan="7" class="text-center text-muted py-4">
-                                        Henüz spor salonu eklenmemiş. <a href="@Url.Action("CreateGym", "Admin")">İlk spor salonunu ekleyin</a>.
+                                        Henüz spor salonu eklenmemiş. <a href="@Url.Action("Create", "Gyms")">İlk spor salonunu ekleyin</a>.
                                     </td>
                                 </tr>
                             }
@@ -135,7 +135,7 @@
                     </div>
                 </div>
 
-                <form id="deleteGymForm" method="post" asp-action="DeleteGym">
+                <form id="deleteGymForm" method="post" asp-controller="Gyms" asp-action="Delete">
                     <input type="hidden" id="modal-gym-id" name="id" />
                     @Html.AntiForgeryToken()
                 </form>

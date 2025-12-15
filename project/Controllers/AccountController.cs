@@ -1,3 +1,8 @@
+/*
+Giriş, kayıt ve çıkış işlemleri bu controller'da yönetilir. 
+Üyeler kayıt olabilir, tüm kullanıcılar giriş yapabilir.
+*/
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,100 +25,9 @@ namespace proje.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetNotifications()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            var notifications = await _context.Notifications
-                .Where(n => n.UserId == currentUser.Id)
-                .OrderByDescending(n => n.CreatedDate)
-                .Take(10)
-                .Select(n => new
-                {
-                    id = n.Id,
-                    title = n.Title,
-                    message = n.Message,
-                    isRead = n.IsRead,
-                    createdDate = n.CreatedDate,
-                    appointmentId = n.AppointmentId
-                })
-                .ToListAsync();
-
-            return Json(new { success = true, notifications = notifications });
-        }
-
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetUnreadNotificationCount()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, count = 0 });
-            }
-
-            var count = await _context.Notifications
-                .CountAsync(n => n.UserId == currentUser.Id && !n.IsRead);
-
-            return Json(new { success = true, count = count });
-        }
-
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarkNotificationAsRead(int id)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            var notification = await _context.Notifications
-                .FirstOrDefaultAsync(n => n.Id == id && n.UserId == currentUser.Id);
-
-            if (notification == null)
-            {
-                return Json(new { success = false, message = "Bildirim bulunamadı." });
-            }
-
-            notification.IsRead = true;
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true });
-        }
-
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarkAllNotificationsAsRead()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            var notifications = await _context.Notifications
-                .Where(n => n.UserId == currentUser.Id && !n.IsRead)
-                .ToListAsync();
-
-            foreach (var notification in notifications)
-            {
-                notification.IsRead = true;
-            }
-
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true });
-        }
-
+        /// <summary>
+        /// Giriş sayfasını gösterir
+        /// </summary>
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -121,6 +35,9 @@ namespace proje.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Kullanıcı giriş işlemini gerçekleştirir - Email ve şifre ile doğrulama yapar
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
@@ -129,11 +46,9 @@ namespace proje.Controllers
 
             if (ModelState.IsValid)
             {
-                // Email ile kullanıcıyı bul
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user != null && !string.IsNullOrEmpty(user.UserName))
                 {
-                    // UserName ile giriş yap (Identity'de UserName kullanılır)
                     var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
                     if (result.Succeeded)
                     {
@@ -142,7 +57,6 @@ namespace proje.Controllers
                             return Redirect(returnUrl);
                         }
                         
-                        // Rol kontrolü
                         if (await _userManager.IsInRoleAsync(user, "Admin"))
                         {
                             return RedirectToAction("Index", "Home");
@@ -176,26 +90,29 @@ namespace proje.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Üye kayıt sayfasını gösterir
+        /// </summary>
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
 
+        /// <summary>
+        /// Yeni üye kaydı oluşturur - IdentityUser ve Members tablosuna kayıt ekler, Member rolü atar
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // E-posta ile kullanıcı var mı kontrol et
                 var existingUser = await _userManager.FindByEmailAsync(model.Email);
                 if (existingUser != null)
                 {
-                    // Kullanıcı zaten var - Trainer rolünde mi kontrol et
                     if (await _userManager.IsInRoleAsync(existingUser, "Trainer"))
                     {
-                        // Trainer olarak kayıtlı mı kontrol et
                         var existingTrainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == existingUser.Id);
                         if (existingTrainer != null)
                         {
@@ -204,7 +121,6 @@ namespace proje.Controllers
                         }
                     }
 
-                    // Member olarak kayıtlı mı kontrol et
                     var existingMember = await _context.Members.FirstOrDefaultAsync(m => m.UserId == existingUser.Id);
                     if (existingMember != null)
                     {
@@ -217,10 +133,8 @@ namespace proje.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    // Yeni kullanıcıya Member rolü ver
                     await _userManager.AddToRoleAsync(user, "Member");
                     
-                    // Members tablosuna kayıt ekle
                     var member = new Member
                     {
                         UserId = user.Id,
@@ -243,6 +157,9 @@ namespace proje.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Kullanıcı oturumunu sonlandırır ve ana sayfaya yönlendirir
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()

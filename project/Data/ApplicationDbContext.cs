@@ -42,6 +42,7 @@ namespace proje.Data
                 entity.Property(e => e.OpeningTime).IsRequired();
                 entity.Property(e => e.ClosingTime).IsRequired();
                 entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+                entity.Property(e => e.WorkingDays).HasMaxLength(50);
                 entity.Property(e => e.CreatedDate).IsRequired().HasDefaultValueSql("GETDATE()");
                 entity.Property(e => e.UpdatedDate);
                 
