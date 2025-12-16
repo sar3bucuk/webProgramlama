@@ -1,0 +1,127 @@
+@model IEnumerable<proje.Models.NutritionPlan>
+@{
+    ViewData["Title"] = "Beslenme Programlarım";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>🍽️ Beslenme Programlarım</h2>
+                <a href="@Url.Action("Create", "Nutrition")" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Yeni Program Oluştur
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <h5>Henüz beslenme programınız bulunmuyor.</h5>
+            <p>Yapay zeka destekli kişiselleştirilmiş beslenme programı oluşturmak için <a href="@Url.Action("Create", "Nutrition")">buraya</a> tıklayın.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var plan in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">@(plan.Goal ?? "Beslenme Programı")</h5>
+                            <small>@plan.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Aktivite Seviyesi:</strong> @(plan.ActivityLevel ?? "Belirtilmemiş")
+                            </div>
+                            
+                            @if (plan.DailyCalorieTarget.HasValue || plan.DailyProtein.HasValue)
+                            {
+                                <div class="mb-3">
+                                    <strong>Makro Besinler:</strong>
+                                    <ul class="list-unstyled ms-3">
+                                        @if (plan.DailyCalorieTarget.HasValue)
+                                        {
+                                            <li>🔥 Kalori: <strong>@plan.DailyCalorieTarget.Value.ToString("F0") kcal</strong></li>
+                                        }
+                                        @if (plan.DailyProtein.HasValue)
+                                        {
+                                            <li>🥩 Protein: @plan.DailyProtein.Value.ToString("F1") g</li>
+                                        }
+                                        @if (plan.DailyCarbohydrate.HasValue)
+                                        {
+                                            <li>🍞 Karbonhidrat: @plan.DailyCarbohydrate.Value.ToString("F1") g</li>
+                                        }
+                                        @if (plan.DailyFat.HasValue)
+                                        {
+                                            <li>🥑 Yağ: @plan.DailyFat.Value.ToString("F1") g</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(plan.Allergies) || !string.IsNullOrEmpty(plan.DislikedFoods))
+                            {
+                                <div class="mb-3">
+                                    @if (!string.IsNullOrEmpty(plan.Allergies))
+                                    {
+                                        <span class="badge bg-warning text-dark">⚠️ Alerji: @plan.Allergies</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(plan.DislikedFoods))
+                                    {
+                                        <span class="badge bg-info text-dark">🚫 Sevilmeyen: @plan.DislikedFoods</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(plan.PlanDetails))
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        @{
+                                            var preview = plan.PlanDetails.Length > 150 
+                                                ? plan.PlanDetails.Substring(0, 150) + "..." 
+                                                : plan.PlanDetails;
+                                        }
+                                        @preview
+                                    </small>
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="@Url.Action("Details", "Nutrition", new { id = plan.Id })" class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye"></i> Detayları Görüntüle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+</style>
+

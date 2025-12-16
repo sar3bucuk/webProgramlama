@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using proje.Data;
+using proje.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 
 builder.Services.AddControllersWithViews();
+
+// HttpClient ve OpenAI servisi
+builder.Services.AddHttpClient<OpenAIService>();
+builder.Services.AddScoped<OpenAIService>();
 
 var app = builder.Build();
 

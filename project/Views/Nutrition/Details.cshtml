@@ -1,0 +1,118 @@
+@model proje.Models.NutritionPlan
+@{
+    ViewData["Title"] = "Beslenme Programı Detayları";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">🍽️ Beslenme Programı Detayları</h3>
+                    <small>Oluşturulma Tarihi: @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>📋 Program Bilgileri</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Hedef:</th>
+                                    <td>@(Model.Goal ?? "Belirtilmemiş")</td>
+                                </tr>
+                                <tr>
+                                    <th>Aktivite Seviyesi:</th>
+                                    <td>@(Model.ActivityLevel ?? "Belirtilmemiş")</td>
+                                </tr>
+                                @if (Model.DailyCalorieTarget.HasValue)
+                                {
+                                    <tr>
+                                        <th>Günlük Kalori Hedefi:</th>
+                                        <td><strong>@Model.DailyCalorieTarget.Value.ToString("F0") kcal</strong></td>
+                                    </tr>
+                                }
+                                @if (Model.DailyProtein.HasValue)
+                                {
+                                    <tr>
+                                        <th>Günlük Protein:</th>
+                                        <td>@Model.DailyProtein.Value.ToString("F1") g</td>
+                                    </tr>
+                                }
+                                @if (Model.DailyCarbohydrate.HasValue)
+                                {
+                                    <tr>
+                                        <th>Günlük Karbonhidrat:</th>
+                                        <td>@Model.DailyCarbohydrate.Value.ToString("F1") g</td>
+                                    </tr>
+                                }
+                                @if (Model.DailyFat.HasValue)
+                                {
+                                    <tr>
+                                        <th>Günlük Yağ:</th>
+                                        <td>@Model.DailyFat.Value.ToString("F1") g</td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>⚠️ Özel Bilgiler</h5>
+                            @if (!string.IsNullOrEmpty(Model.Allergies))
+                            {
+                                <div class="alert alert-warning">
+                                    <strong>Alerjiler:</strong> @Model.Allergies
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.DislikedFoods))
+                            {
+                                <div class="alert alert-info">
+                                    <strong>Sevilmeyen Gıdalar:</strong> @Model.DislikedFoods
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.SpecialNotes))
+                            {
+                                <div class="alert alert-secondary">
+                                    <strong>Özel Notlar:</strong> @Model.SpecialNotes
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5>📝 Detaylı Beslenme Programı</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div style="white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8;">
+                                    @Html.Raw(Model.PlanDetails?.Replace("\n", "<br>"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="@Url.Action("MyPlans", "Nutrition")" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Programlarım
+                        </a>
+                        <a href="@Url.Action("Create", "Nutrition")" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Yeni Program Oluştur
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+    }
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+    table th {
+        background-color: #f8f9fa;
+        width: 40%;
+    }
+</style>
+

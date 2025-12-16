@@ -70,6 +70,7 @@ namespace proje.Models
 
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
         public virtual ICollection<AIRecommendation> AIRecommendations { get; set; } = new List<AIRecommendation>();
+        public virtual ICollection<NutritionPlan> NutritionPlans { get; set; } = new List<NutritionPlan>();
 
         [NotMapped]
         [Display(Name = "Ad Soyad")]

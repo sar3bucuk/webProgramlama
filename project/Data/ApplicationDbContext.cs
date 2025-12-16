@@ -23,6 +23,7 @@ namespace proje.Data
         public DbSet<Member> Members { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<AIRecommendation> AIRecommendations { get; set; }
+        public DbSet<NutritionPlan> NutritionPlans { get; set; }
         public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -328,6 +329,45 @@ namespace proje.Data
                     .WithMany(m => m.AIRecommendations)
                     .HasForeignKey(ai => ai.MemberId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // =============================================
+            // NUTRITIONPLANS TABLE
+            // =============================================
+            builder.Entity<NutritionPlan>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.MemberId).IsRequired();
+                entity.Property(e => e.Goal).HasMaxLength(100);
+                entity.Property(e => e.DailyCalorieTarget).HasPrecision(8, 2);
+                entity.Property(e => e.DailyProtein).HasPrecision(6, 2);
+                entity.Property(e => e.DailyCarbohydrate).HasPrecision(6, 2);
+                entity.Property(e => e.DailyFat).HasPrecision(6, 2);
+                entity.Property(e => e.PlanDetails);
+                entity.Property(e => e.SpecialNotes).HasMaxLength(1000);
+                entity.Property(e => e.Allergies).HasMaxLength(500);
+                entity.Property(e => e.DislikedFoods).HasMaxLength(500);
+                entity.Property(e => e.ActivityLevel).HasMaxLength(50);
+                entity.Property(e => e.CreatedDate).IsRequired().HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.UpdatedDate);
+                
+                // Check constraints
+                entity.ToTable(t => {
+                    t.HasCheckConstraint("CK_NutritionPlans_CalorieTarget", "[DailyCalorieTarget] > 0");
+                    t.HasCheckConstraint("CK_NutritionPlans_Protein", "[DailyProtein] > 0");
+                    t.HasCheckConstraint("CK_NutritionPlans_Carbohydrate", "[DailyCarbohydrate] > 0");
+                    t.HasCheckConstraint("CK_NutritionPlans_Fat", "[DailyFat] > 0");
+                });
+                
+                // Foreign key
+                entity.HasOne(np => np.Member)
+                    .WithMany(m => m.NutritionPlans)
+                    .HasForeignKey(np => np.MemberId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                // Indexes
+                entity.HasIndex(e => e.MemberId);
+                entity.HasIndex(e => e.CreatedDate);
             });
 
             // =============================================

@@ -101,6 +101,7 @@ namespace proje.Controllers
             ModelState.Remove("GymId");
             ModelState.Remove("Appointments");
             ModelState.Remove("AIRecommendations");
+            ModelState.Remove("NutritionPlans");
 
             if (ModelState.IsValid)
             {

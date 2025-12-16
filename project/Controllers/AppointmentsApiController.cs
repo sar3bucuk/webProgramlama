@@ -51,6 +51,7 @@ namespace proje.Controllers
                 }
 
                 var gymService = await _context.GymServices
+                    .Include(gs => gs.Gym)
                     .FirstOrDefaultAsync(gs => gs.Id == gymServiceId);
 
                 if (gymService == null)
@@ -58,8 +59,27 @@ namespace proje.Controllers
                     return NotFound(new { success = false, message = "Hizmet bulunamadı." });
                 }
 
+                // Spor salonunun çalışma günlerini kontrol et
+                var gym = gymService.Gym;
+                if (gym != null && !string.IsNullOrWhiteSpace(gym.WorkingDays))
+                {
+                    int dayOfWeekForGym = (int)appointmentDate.DayOfWeek;
+                    var workingDays = gym.WorkingDaysList;
+                    
+                    if (!workingDays.Contains(dayOfWeekForGym))
+                    {
+                        return Ok(new { success = true, trainers = new List<object>() });
+                    }
+                }
+
+                // Spor salonunun açılış/kapanış saatlerini kontrol et
                 int dayOfWeek = (int)appointmentDate.DayOfWeek;
                 var endTime = timeSpan.Add(TimeSpan.FromMinutes(duration));
+                
+                if (gym != null && (timeSpan < gym.OpeningTime || endTime > gym.ClosingTime))
+                {
+                    return Ok(new { success = true, trainers = new List<object>() });
+                }
 
                 var availableTrainers = await _context.Trainers
                     .Include(t => t.Gym)                             

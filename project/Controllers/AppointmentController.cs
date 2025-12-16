@@ -246,6 +246,9 @@ namespace proje.Controllers
             appointment.Price = gymService.Price;
             ModelState.Remove("MemberId"); 
 
+            // Randevu bitiş saatini hesapla (hem spor salonu hem antrenör kontrollerinde kullanılacak)
+            var endTime = appointment.AppointmentTime.Add(TimeSpan.FromMinutes(appointment.Duration));
+
             // Spor salonunun çalışma günlerini kontrol et
             var gym = await _context.Gyms
                 .Include(g => g.GymServices)
@@ -259,6 +262,17 @@ namespace proje.Controllers
                 if (!workingDays.Contains(dayOfWeekForGym))
                 {
                     ModelState.AddModelError("AppointmentDate", $"Seçilen tarih spor salonunun çalışma günleri içinde değil. Spor salonu sadece {gym.WorkingDaysText} günleri çalışmaktadır.");
+                    await PopulateViewBagForError(appointment);
+                    return View(appointment);
+                }
+            }
+
+            // Spor salonunun açılış/kapanış saatlerini kontrol et
+            if (gym != null)
+            {
+                if (appointment.AppointmentTime < gym.OpeningTime || endTime > gym.ClosingTime)
+                {
+                    ModelState.AddModelError("AppointmentTime", $"Randevu saati spor salonunun çalışma saatleri içinde olmalıdır. Spor salonu {gym.OpeningTime:hh\\:mm} - {gym.ClosingTime:hh\\:mm} saatleri arasında açıktır.");
                     await PopulateViewBagForError(appointment);
                     return View(appointment);
                 }
@@ -287,7 +301,6 @@ namespace proje.Controllers
                 return View(appointment);
             }
 
-            var endTime = appointment.AppointmentTime.Add(TimeSpan.FromMinutes(appointment.Duration));
             if (appointment.AppointmentTime < availability.StartTime || endTime > availability.EndTime)
             {
                 ModelState.AddModelError("", $"Randevu saati antrenörün müsaitlik saatleri içinde olmalıdır ({availability.StartTime:hh\\:mm} - {availability.EndTime:hh\\:mm}).");

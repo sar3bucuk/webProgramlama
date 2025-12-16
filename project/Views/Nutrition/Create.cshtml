@@ -1,0 +1,174 @@
+@model proje.Models.NutritionPlan
+@{
+    ViewData["Title"] = "Beslenme Programı Oluştur";
+    Layout = "_Layout";
+    var member = ViewBag.Member as proje.Models.Member;
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1000px;">
+        <div class="auth-card-modern">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Beslenme Programı Oluştur</h2>
+                <p class="auth-subtitle-modern">Yapay zeka destekli kişiselleştirilmiş beslenme programı</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Create" method="post" class="auth-form-modern">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                @if (member != null)
+                {
+                    <div class="alert alert-info" role="alert">
+                        <strong>📋 Mevcut Bilgileriniz:</strong><br>
+                        @if (member.Height.HasValue && member.Weight.HasValue)
+                        {
+                            <span>Boy: @member.Height cm, Kilo: @member.Weight kg</span>
+                            @if (member.DateOfBirth.HasValue)
+                            {
+                                var age = DateTime.Now.Year - member.DateOfBirth.Value.Year;
+                                if (member.DateOfBirth.Value.Date > DateTime.Now.AddYears(-age)) age--;
+                                <span> | Yaş: @age</span>
+                            }
+                            @if (!string.IsNullOrEmpty(member.Gender))
+                            {
+                                <span> | Cinsiyet: @member.Gender</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>Profil bilgilerinizi güncellemek için <a href="@Url.Action("Edit", "Member")">buraya</a> tıklayın.</span>
+                        }
+                    </div>
+                }
+
+                <div class="form-group-modern">
+                    <label asp-for="Goal" class="form-label-modern">Hedef <span class="text-danger">*</span></label>
+                    <select asp-for="Goal" class="form-control-modern" required>
+                        <option value="">Hedef Seçin</option>
+                        <option value="Kilo Verme">Kilo Verme</option>
+                        <option value="Kilo Alma">Kilo Alma</option>
+                        <option value="Kas Kütlesi Artırma">Kas Kütlesi Artırma</option>
+                        <option value="Genel Sağlık">Genel Sağlık</option>
+                        <option value="Performans Artırma">Performans Artırma</option>
+                        <option value="Vücut Yağ Oranı Azaltma">Vücut Yağ Oranı Azaltma</option>
+                    </select>
+                    <span asp-validation-for="Goal" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="ActivityLevel" class="form-label-modern">Aktivite Seviyesi <span class="text-danger">*</span></label>
+                    <select asp-for="ActivityLevel" class="form-control-modern" required>
+                        <option value="">Aktivite Seviyesi Seçin</option>
+                        <option value="Sedanter">Sedanter (Hareketsiz, günlük aktivite yok)</option>
+                        <option value="Hafif Aktif">Hafif Aktif (Haftada 1-3 gün hafif egzersiz)</option>
+                        <option value="Orta Aktif">Orta Aktif (Haftada 3-5 gün orta şiddetli egzersiz)</option>
+                        <option value="Çok Aktif">Çok Aktif (Haftada 6-7 gün yoğun egzersiz)</option>
+                        <option value="Aşırı Aktif">Aşırı Aktif (Günde 2 kez yoğun egzersiz, fiziksel iş)</option>
+                    </select>
+                    <span asp-validation-for="ActivityLevel" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="DailyCalorieTarget" class="form-label-modern">Günlük Kalori Hedefi (kcal)</label>
+                            <input asp-for="DailyCalorieTarget" type="number" step="0.01" min="0" class="form-control-modern" placeholder="Örn: 2000" />
+                            <small class="text-muted">Boş bırakılırsa AI otomatik hesaplayacaktır</small>
+                            <span asp-validation-for="DailyCalorieTarget" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="DailyProtein" class="form-label-modern">Günlük Protein (g)</label>
+                            <input asp-for="DailyProtein" type="number" step="0.01" min="0" class="form-control-modern" placeholder="Örn: 150" />
+                            <small class="text-muted">Boş bırakılırsa AI otomatik hesaplayacaktır</small>
+                            <span asp-validation-for="DailyProtein" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="DailyCarbohydrate" class="form-label-modern">Günlük Karbonhidrat (g)</label>
+                            <input asp-for="DailyCarbohydrate" type="number" step="0.01" min="0" class="form-control-modern" placeholder="Örn: 250" />
+                            <small class="text-muted">Boş bırakılırsa AI otomatik hesaplayacaktır</small>
+                            <span asp-validation-for="DailyCarbohydrate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label asp-for="DailyFat" class="form-label-modern">Günlük Yağ (g)</label>
+                            <input asp-for="DailyFat" type="number" step="0.01" min="0" class="form-control-modern" placeholder="Örn: 65" />
+                            <small class="text-muted">Boş bırakılırsa AI otomatik hesaplayacaktır</small>
+                            <span asp-validation-for="DailyFat" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="Allergies" class="form-label-modern">Alerjiler</label>
+                    <input asp-for="Allergies" type="text" class="form-control-modern" placeholder="Örn: Fındık, süt, yumurta" />
+                    <small class="text-muted">Varsa alerjilerinizi belirtin (virgülle ayırın)</small>
+                    <span asp-validation-for="Allergies" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="DislikedFoods" class="form-label-modern">Sevilmeyen Gıdalar</label>
+                    <input asp-for="DislikedFoods" type="text" class="form-control-modern" placeholder="Örn: Brokoli, karnabahar" />
+                    <small class="text-muted">Yemek istemediğiniz gıdaları belirtin (virgülle ayırın)</small>
+                    <span asp-validation-for="DislikedFoods" class="text-danger"></span>
+                </div>
+
+                <div class="form-group-modern">
+                    <label asp-for="SpecialNotes" class="form-label-modern">Özel Notlar</label>
+                    <textarea asp-for="SpecialNotes" class="form-control-modern" rows="4" placeholder="Özel diyet tercihleri, kısıtlamalar, ek bilgiler..."></textarea>
+                    <small class="text-muted">Örn: Vejetaryen, vegan, düşük sodyum, vb.</small>
+                    <span asp-validation-for="SpecialNotes" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions-modern">
+                    <a href="@Url.Action("MyPlans", "Nutrition")" class="btn-auth-modern btn-secondary-modern">İptal</a>
+                    <button type="submit" class="btn-auth-modern">Program Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-actions-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .btn-secondary-modern {
+        background: #64748b;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #475569;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
