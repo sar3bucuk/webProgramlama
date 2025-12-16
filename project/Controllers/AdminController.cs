@@ -104,6 +104,50 @@ namespace proje.Controllers
         }
 
         /// <summary>
+        /// Üyenin detaylı bilgilerini getirir (JSON döner)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> MemberDetails(int id)
+        {
+            var member = await _context.Members
+                .Include(m => m.User)
+                .Include(m => m.Gym)
+                .Include(m => m.Appointments)
+                    .ThenInclude(a => a.GymService)
+                        .ThenInclude(gs => gs.Service)
+                .Include(m => m.NutritionPlans)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (member == null)
+            {
+                return Json(new { success = false, message = "Üye bulunamadı." });
+            }
+
+            var memberData = new
+            {
+                id = member.Id,
+                firstName = member.FirstName,
+                lastName = member.LastName,
+                fullName = member.FullName,
+                email = member.User?.Email ?? "-",
+                phone = member.Phone ?? "-",
+                dateOfBirth = member.DateOfBirth?.ToString("dd.MM.yyyy") ?? "-",
+                gender = member.Gender ?? "-",
+                height = member.Height?.ToString("F2") ?? "-",
+                weight = member.Weight?.ToString("F2") ?? "-",
+                bodyType = member.BodyType ?? "-",
+                healthConditions = member.HealthConditions ?? "-",
+                gymName = member.Gym?.Name ?? "Bağlı değil",
+                createdDate = member.CreatedDate.ToString("dd.MM.yyyy HH:mm"),
+                updatedDate = member.UpdatedDate?.ToString("dd.MM.yyyy HH:mm") ?? "-",
+                appointmentCount = member.Appointments?.Count ?? 0,
+                nutritionPlanCount = member.NutritionPlans?.Count ?? 0
+            };
+
+            return Json(new { success = true, member = memberData });
+        }
+
+        /// <summary>
         /// Üyeyi bir spor salonuna bağlar veya bağlantısını kaldırır (JSON döner)
         /// </summary>
         [HttpPost]

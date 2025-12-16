@@ -96,8 +96,61 @@
                         <a href="@Url.Action("Create", "Nutrition")" class="btn btn-primary">
                             <i class="bi bi-plus-circle"></i> Yeni Program Oluştur
                         </a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash"></i> Programı Sil
+                        </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Silme Onay Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Beslenme Programını Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong>Dikkat!</strong> Bu işlem geri alınamaz.
+                    </div>
+                </div>
+                <p class="mb-3">
+                    Aşağıdaki beslenme programını silmek istediğinizden emin misiniz?
+                </p>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <strong>Program:</strong> @(Model.Goal ?? "Beslenme Programı")<br>
+                        <small class="text-muted">Oluşturulma: @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                        @if (Model.DailyCalorieTarget.HasValue)
+                        {
+                            <br><small class="text-muted">Kalori Hedefi: @Model.DailyCalorieTarget.Value.ToString("F0") kcal</small>
+                        }
+                    </div>
+                </div>
+                <p class="text-muted mt-3 mb-0">
+                    <small>Bu program silindiğinde tüm bilgiler kalıcı olarak kaybolacaktır.</small>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> İptal
+                </button>
+                <form asp-action="Delete" asp-controller="Nutrition" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash-fill"></i> Evet, Sil
+                    </button>
+                </form>
             </div>
         </div>
     </div>

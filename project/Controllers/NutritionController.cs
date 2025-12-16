@@ -170,28 +170,47 @@ namespace proje.Controllers
         }
 
         /// <summary>
-        /// API key test sayfası - API'nin çalışıp çalışmadığını test eder
+        /// Beslenme programını siler
         /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> TestApi()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+
+            if (member == null)
+            {
+                return RedirectToAction("Register", "Account");
+            }
+
+            var nutritionPlan = await _context.NutritionPlans
+                .FirstOrDefaultAsync(np => np.Id == id && np.MemberId == member.Id);
+
+            if (nutritionPlan == null)
+            {
+                TempData["ErrorMessage"] = "Beslenme programı bulunamadı veya silme yetkiniz yok.";
+                return RedirectToAction(nameof(MyPlans));
+            }
+
             try
             {
-                var testPrompt = "Merhaba, bu bir test mesajıdır. Lütfen 'API çalışıyor!' yaz.";
-                var response = await _openAIService.GenerateNutritionPlanAsync(testPrompt);
-                
-                ViewBag.Success = true;
-                ViewBag.Response = response;
-                ViewBag.Message = "✅ API başarıyla çalışıyor!";
+                _context.NutritionPlans.Remove(nutritionPlan);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Beslenme programı başarıyla silindi.";
             }
             catch (Exception ex)
             {
-                ViewBag.Success = false;
-                ViewBag.Error = ex.Message;
-                ViewBag.Message = "❌ API hatası oluştu!";
+                TempData["ErrorMessage"] = $"Beslenme programı silinirken bir hata oluştu: {ex.Message}";
             }
-            
-            return View();
+
+            return RedirectToAction(nameof(MyPlans));
         }
 
         /// <summary>

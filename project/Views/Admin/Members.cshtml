@@ -111,6 +111,10 @@
                                         </td>
                                         <td style="color: #64748b;">@member.CreatedDate.ToString("dd.MM.yyyy")</td>
                                         <td>
+                                            <button type="button" class="btn btn-sm btn-outline-info me-1" 
+                                                    onclick="showMemberDetails(@member.Id)">
+                                                <i class="bi bi-eye"></i> Detaylar
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-outline-primary" 
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#editMemberModal"
@@ -143,6 +147,32 @@
 </div>
 
 @Html.AntiForgeryToken()
+
+<!-- Üye Detayları Modal -->
+<div class="modal fade" id="memberDetailsModal" tabindex="-1" aria-labelledby="memberDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="memberDetailsModalLabel">
+                    <i class="bi bi-person-circle"></i> Üye Detayları
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="memberDetailsContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Üye Düzenleme Modal -->
 <div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
@@ -189,6 +219,109 @@
 </div>
 
 <script>
+    function showMemberDetails(memberId) {
+        const modal = new bootstrap.Modal(document.getElementById('memberDetailsModal'));
+        const contentDiv = document.getElementById('memberDetailsContent');
+        
+        // Loading göster
+        contentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Yükleniyor...</span></div></div>';
+        modal.show();
+        
+        // AJAX ile detayları getir
+        fetch('@Url.Action("MemberDetails", "Admin")?id=' + memberId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.member) {
+                    const member = data.member;
+                    let html = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3"><i class="bi bi-person"></i> Kişisel Bilgiler</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 40%;">Ad Soyad:</th>
+                                        <td><strong>${member.fullName}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>E-posta:</th>
+                                        <td>${member.email}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Telefon:</th>
+                                        <td>${member.phone}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Doğum Tarihi:</th>
+                                        <td>${member.dateOfBirth}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cinsiyet:</th>
+                                        <td>${member.gender}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3"><i class="bi bi-activity"></i> Fiziksel Bilgiler</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 40%;">Boy:</th>
+                                        <td>${member.height} cm</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Kilo:</th>
+                                        <td>${member.weight} kg</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Vücut Tipi:</th>
+                                        <td>${member.bodyType}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Sağlık Durumu:</th>
+                                        <td>${member.healthConditions}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Diğer Bilgiler</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 20%;">Spor Salonu:</th>
+                                        <td><span class="badge bg-primary">${member.gymName}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Randevu Sayısı:</th>
+                                        <td><span class="badge bg-info">${member.appointmentCount}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Beslenme Programı:</th>
+                                        <td><span class="badge bg-success">${member.nutritionPlanCount}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Oluşturulma:</th>
+                                        <td>${member.createdDate}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Güncellenme:</th>
+                                        <td>${member.updatedDate}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    contentDiv.innerHTML = html;
+                } else {
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Üye bilgileri yüklenirken bir hata oluştu.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                contentDiv.innerHTML = '<div class="alert alert-danger">Bir hata oluştu. Lütfen tekrar deneyin.</div>';
+            });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const editModal = document.getElementById('editMemberModal');
         if (editModal) {
@@ -339,6 +472,29 @@
     .modal-footer {
         border-radius: 0 0 16px 16px;
         border-top: 1px solid rgba(226, 232, 240, 0.3);
+    }
+
+    #memberDetailsContent table th {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    #memberDetailsContent table td {
+        color: #1e293b;
+        font-size: 0.875rem;
+    }
+
+    #memberDetailsContent .table-borderless th,
+    #memberDetailsContent .table-borderless td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+    #memberDetailsContent h6 {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 1rem;
     }
 </style>
 

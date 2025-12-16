@@ -84,18 +84,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "EditAppointment.cshtml",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
-              "RelativeDocumentMoniker": "Views\\Trainer\\EditAppointment.cshtml",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
-              "RelativeToolTip": "Views\\Trainer\\EditAppointment.cshtml",
-              "ViewState": "AgIAAFkAAAAAAAAAAAAswGQAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-08T21:54:44.295Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 5,
               "Title": "Members.cshtml",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
@@ -153,6 +141,18 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAOsAAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-08T21:22:44.53Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "EditAppointment.cshtml",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
+              "RelativeDocumentMoniker": "Views\\Trainer\\EditAppointment.cshtml",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
+              "RelativeToolTip": "Views\\Trainer\\EditAppointment.cshtml",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAswGQAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-08T21:54:44.295Z"
             },
             {
               "$type": "Document",
