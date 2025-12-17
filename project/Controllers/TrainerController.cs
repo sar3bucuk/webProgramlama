@@ -312,11 +312,13 @@ namespace proje.Controllers
                         .Include(a => a.Member)
                             .ThenInclude(m => m.User)
                         .Include(a => a.Trainer)
+                            .ThenInclude(t => t.User)
                         .Include(a => a.GymService)
                             .ThenInclude(gs => gs.Service)
                         .FirstOrDefaultAsync(a => a.Id == id);
 
-                    if (appointmentWithDetails?.Member?.User != null)
+                    // Sadece üyeye bildirim gönder (trainer zaten kendi randevularını görüyor)
+                    if (appointmentWithDetails?.Member?.User != null && !string.IsNullOrEmpty(appointmentWithDetails.Member.User.Id))
                     {
                         var statusText = status == "Approved" ? "onaylandı" : "reddedildi";
                         await CreateNotificationAsync(

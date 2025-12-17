@@ -129,7 +129,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-nav .dropdown-item {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
     color: var(--text-dark);
     transition: var(--transition);
     display: flex;
@@ -148,7 +149,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-nav .dropdown-divider {
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
     border-color: #e2e8f0;
 }
 

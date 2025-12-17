@@ -25,8 +25,7 @@
                 <div class="profile-header">
                     <h3>Kişisel Bilgiler</h3>
                     <div>
-                        <a href="@Url.Action("Appointments", "Trainer")" class="btn btn-primary btn-sm me-2">📅 Randevularım</a>
-                        <a href="@Url.Action("Edit", "Trainer")" class="btn btn-outline-primary btn-sm">Düzenle</a>
+                        <a href="@Url.Action("Edit", "Trainer")" class="btn btn-outline-primary trainer-edit-btn">Düzenle</a>
                     </div>
                 </div>
 
@@ -228,6 +227,13 @@
         margin: 0;
         color: var(--text-dark);
         font-weight: 600;
+    }
+
+    .trainer-edit-btn {
+        padding: 0.625rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
     }
 </style>
 

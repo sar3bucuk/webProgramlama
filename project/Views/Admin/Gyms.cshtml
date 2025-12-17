@@ -104,45 +104,38 @@
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
-                <h5 class="modal-title" id="deleteModalLabel">
-                    <span style="font-size: 1.5rem;">⚠️</span> Spor Salonu Sil
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+        <div class="modal-content cancel-confirm-modal">
             <div class="modal-body">
-                <div class="alert alert-warning">
-                    <strong>Uyarı!</strong> Bu işlem geri alınamaz. Spor salonu ve tüm ilişkili veriler (hizmetler, antrenörler, randevular) silinecektir.
+                <div class="cancel-confirm-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
                 </div>
-
-                <div class="delete-info-modal">
-                    <h6 style="margin-bottom: 1rem; color: #1e293b; font-weight: 600;">Silmek istediğiniz spor salonu:</h6>
-                    <div class="info-item-modal">
+                <h5 class="cancel-confirm-title">Spor Salonunu Silmek İstediğinizden Emin misiniz?</h5>
+                <p class="cancel-confirm-message">Bu işlem geri alınamaz. Spor salonu ve tüm ilişkili veriler (hizmetler, antrenörler, randevular) silinecektir.</p>
+                <div class="gym-delete-info">
+                    <div class="info-item-delete">
                         <strong>Ad:</strong> <span id="modal-gym-name"></span>
                     </div>
-                    <div class="info-item-modal">
+                    <div class="info-item-delete">
                         <strong>Adres:</strong> <span id="modal-gym-address"></span>
                     </div>
-                    <div class="info-item-modal">
+                    <div class="info-item-delete">
                         <strong>Telefon:</strong> <span id="modal-gym-phone"></span>
                     </div>
-                    <div class="info-item-modal">
+                    <div class="info-item-delete">
                         <strong>E-posta:</strong> <span id="modal-gym-email"></span>
                     </div>
-                    <div class="info-item-modal">
+                    <div class="info-item-delete">
                         <strong>Durum:</strong> <span id="modal-gym-status"></span>
                     </div>
                 </div>
-
-                <form id="deleteGymForm" method="post" asp-controller="Gyms" asp-action="Delete">
+                <form id="deleteGymForm" method="post" asp-controller="Gyms" asp-action="Delete" style="display: none;">
                     <input type="hidden" id="modal-gym-id" name="id" />
                     @Html.AntiForgeryToken()
                 </form>
-            </div>
-            <div class="modal-footer" style="border-top: none;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="submit" form="deleteGymForm" class="btn btn-danger">Evet, Sil</button>
+                <div class="cancel-confirm-actions">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteGymBtn">Evet, Sil</button>
+                </div>
             </div>
         </div>
     </div>
@@ -175,6 +168,10 @@
                 }
             });
         }
+
+        document.getElementById('confirmDeleteGymBtn').addEventListener('click', function() {
+            document.getElementById('deleteGymForm').submit();
+        });
     });
 </script>
 
@@ -225,42 +222,117 @@
         margin: 0 2px;
     }
 
-    .delete-info-modal {
+    /* Silme Onay Modal Stilleri */
+    .cancel-confirm-modal {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .cancel-confirm-modal .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .cancel-confirm-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+
+    .cancel-confirm-icon i {
+        font-size: 2.5rem;
+        color: #dc2626;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .cancel-confirm-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .cancel-confirm-message {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .gym-delete-info {
         background: #f8f9fa;
         border-radius: 8px;
         padding: 1.5rem;
-        margin: 1.5rem 0;
+        margin: 1.5rem 0 2rem;
         border: 1px solid rgba(226, 232, 240, 0.8);
+        text-align: left;
     }
 
-    .info-item-modal {
+    .info-item-delete {
         padding: 0.5rem 0;
         border-bottom: 1px solid rgba(226, 232, 240, 0.6);
         color: #1e293b;
     }
 
-    .info-item-modal:last-child {
+    .info-item-delete:last-child {
         border-bottom: none;
     }
 
-    .info-item-modal strong {
+    .info-item-delete strong {
         color: #64748b;
         margin-right: 0.5rem;
         font-weight: 600;
     }
 
-    .modal-content {
-        border-radius: 16px;
+    .cancel-confirm-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .cancel-confirm-actions .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-confirm-actions .btn-secondary {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .cancel-confirm-actions .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    .cancel-confirm-actions .btn-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
         border: none;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        color: white;
     }
 
-    .modal-header {
-        border-radius: 16px 16px 0 0;
-    }
-
-    .modal-footer {
-        border-radius: 0 0 16px 16px;
+    .cancel-confirm-actions .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     }
 </style>
 

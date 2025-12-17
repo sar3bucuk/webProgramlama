@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Ana Sayfa";
 }
 
@@ -42,8 +42,37 @@
                         Sisteminizin genel durumunu buradan takip edin ve yönetim işlemlerinizi kolayca gerçekleştirin.
                     </p>
                     <div class="hero-cta-modern">
-                        <a href="@Url.Action("Index", "Gyms")" class="btn-modern-primary">🏋️ Salonları Yönet</a>
-                        <a href="@Url.Action("Members", "Admin")" class="btn-modern-secondary">👥 Üyeler</a>
+                        <a href="@Url.Action("Index", "Gyms")" class="btn-modern-primary">Salonları Yönet</a>
+                        <a href="@Url.Action("Members", "Admin")" class="btn-modern-secondary">Üyeler</a>
+                    </div>
+                }
+                else if (User.Identity?.IsAuthenticated == true && User.IsInRole("Trainer"))
+                {
+                    <h1 class="hero-title-modern">
+                        <span class="hero-title-line1">Antrenör Paneli</span>
+                        <span class="hero-title-line2">Hoş Geldiniz</span>
+                    </h1>
+                    <p class="hero-subtitle-modern">
+                        Randevularınızı yönetin, üyelerinizle iletişim kurun ve antrenman programlarınızı organize edin.
+                    </p>
+                    <div class="hero-cta-modern">
+                        <a href="@Url.Action("Appointments", "Trainer")" class="btn-modern-primary">Randevuları Gör</a>
+                        <a href="@Url.Action("Index", "Trainer")" class="btn-modern-secondary">Profilim</a>
+                    </div>
+                }
+                else if (User.Identity?.IsAuthenticated == true)
+                {
+                    <h1 class="hero-title-modern">
+                        <span class="hero-title-line1">Hayalinizdeki vücuda</span>
+                        <span class="hero-title-line2">profesyonel destekle ulaşın</span>
+                    </h1>
+                    <p class="hero-subtitle-modern">
+                        Modern ekipmanlar, uzman antrenörler ve kişiselleştirilmiş programlarla sağlıklı yaşam 
+                        yolculuğunuza bizimle başlayın. Hedeflerinize ulaşmak için yanınızdayız.
+                    </p>
+                    <div class="hero-cta-modern">
+                        <a href="@Url.Action("Create", "Appointment")" class="btn-modern-primary">Randevu Al</a>
+                        <a href="#services" class="btn-modern-secondary">Hizmetlerimiz</a>
                     </div>
                 }
                 else

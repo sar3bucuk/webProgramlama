@@ -10,6 +10,11 @@
     <div class="auth-container-modern" style="max-width: 1200px;">
         <div class="auth-card-modern admin-dashboard-card">
             <div class="auth-header-modern">
+                <div class="d-flex justify-content-end align-items-center mb-3">
+                    <a href="@Url.Action("Index", "Trainer")" class="btn btn-outline-secondary back-btn-edit">
+                        <i class="bi bi-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
                 <h2 class="auth-title-modern">Bilgilerimi Düzenle</h2>
                 <p class="auth-subtitle-modern">Kişisel bilgilerinizi güncelleyin</p>
             </div>
@@ -386,6 +391,13 @@
         font-size: 0.875rem;
         margin-top: 0.25rem;
         display: block;
+    }
+
+    .back-btn-edit {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-radius: 8px;
     }
 </style>
 

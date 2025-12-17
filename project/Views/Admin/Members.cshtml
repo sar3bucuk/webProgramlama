@@ -185,28 +185,21 @@
             <div class="modal-body">
                 <form id="editMemberForm">
                     <input type="hidden" id="editMemberId" />
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Ad Soyad</label>
-                        <input type="text" id="editMemberName" class="form-control-modern" readonly />
+                    <div class="member-edit-info">
+                        <p class="text-muted mb-3">
+                            <strong id="editMemberNameDisplay"></strong> üyesinin spor salonu bilgisini düzenleyebilirsiniz.
+                        </p>
                     </div>
                     <div class="form-group-modern">
-                        <label class="form-label-modern">E-posta</label>
-                        <input type="email" id="editMemberEmail" class="form-control-modern" readonly />
-                        <small class="text-muted">E-posta adresi düzenlenemez.</small>
-                    </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Telefon</label>
-                        <input type="text" id="editMemberPhone" class="form-control-modern" readonly />
-                    </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Spor Salonu</label>
-                        <select id="editGymId" class="form-control-modern">
+                        <label class="form-label-modern">Spor Salonu <span class="text-danger">*</span></label>
+                        <select id="editGymId" class="form-control-modern" required>
                             <option value="0">Bağlantıyı Kaldır</option>
                             @foreach (var gym in gyms)
                             {
                                 <option value="@gym.Id">@gym.Name</option>
                             }
                         </select>
+                        <small class="text-muted">Üyenin bağlı olduğu spor salonunu seçin veya bağlantıyı kaldırın.</small>
                     </div>
                 </form>
             </div>
@@ -329,14 +322,10 @@
                 const button = event.relatedTarget;
                 const memberId = button.getAttribute('data-member-id');
                 const memberName = button.getAttribute('data-member-name');
-                const memberEmail = button.getAttribute('data-member-email');
-                const memberPhone = button.getAttribute('data-member-phone');
                 const currentGymId = button.getAttribute('data-current-gym-id');
                 
                 document.getElementById('editMemberId').value = memberId;
-                document.getElementById('editMemberName').value = memberName;
-                document.getElementById('editMemberEmail').value = memberEmail;
-                document.getElementById('editMemberPhone').value = memberPhone;
+                document.getElementById('editMemberNameDisplay').textContent = memberName;
                 document.getElementById('editGymId').value = currentGymId || '0';
             });
         }
@@ -495,6 +484,24 @@
         font-weight: 700;
         font-size: 1rem;
         margin-bottom: 1rem;
+    }
+
+    .member-edit-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .member-edit-info p {
+        margin: 0;
+        font-size: 0.9375rem;
+    }
+
+    .member-edit-info strong {
+        color: #1e293b;
+        font-weight: 600;
     }
 </style>
 

@@ -24,7 +24,7 @@
             <div class="member-profile-section">
                 <div class="profile-header">
                     <h3>Kişisel Bilgiler</h3>
-                    <a href="@Url.Action("Edit", "Member")" class="btn btn-primary btn-sm">Düzenle</a>
+                    <a href="@Url.Action("Edit", "Member")" class="btn btn-primary profile-edit-btn">Düzenle</a>
                 </div>
 
                 <div class="profile-info-grid">
@@ -80,11 +80,6 @@
                         <p>@Model.HealthConditions</p>
                     </div>
                 }
-            </div>
-
-            <div class="profile-actions">
-                <a href="@Url.Action("Edit", "Member")" class="btn-auth-modern" style="text-decoration: none;">Profili Düzenle</a>
-                <a href="@Url.Action("MyAppointments", "Appointment")" class="btn-auth-modern btn-secondary-modern" style="text-decoration: none;">Randevularım</a>
             </div>
         </div>
     </div>
@@ -199,5 +194,12 @@
     .admin-dashboard-card {
         max-width: 100%;
         width: 100%;
+    }
+
+    .profile-edit-btn {
+        padding: 0.625rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
     }
 </style>

@@ -191,19 +191,48 @@ namespace proje.Controllers
         /// <summary>
         /// Tüm antrenörleri listeler - spor salonu, hizmetler ve kullanıcı bilgileri ile birlikte
         /// </summary>
-        public async Task<IActionResult> Trainers()
+        public async Task<IActionResult> Trainers(string searchName, int? gymId, int? serviceId)
         {
-            var trainers = await _context.Trainers
+            var query = _context.Trainers
                 .Include(t => t.User)
                 .Include(t => t.Gym)
                 .Include(t => t.TrainerServices)
                     .ThenInclude(ts => ts.Service)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchName))
+            {
+                searchName = searchName.Trim();
+                query = query.Where(t => 
+                    (t.FirstName + " " + t.LastName).Contains(searchName) ||
+                    t.FirstName.Contains(searchName) ||
+                    t.LastName.Contains(searchName));
+            }
+
+            if (gymId.HasValue && gymId.Value > 0)
+            {
+                query = query.Where(t => t.GymId == gymId.Value);
+            }
+            else if (gymId == 0)
+            {
+                query = query.Where(t => t.GymId == null);
+            }
+
+            if (serviceId.HasValue && serviceId.Value > 0)
+            {
+                query = query.Where(t => t.TrainerServices.Any(ts => ts.ServiceId == serviceId.Value));
+            }
+
+            var trainers = await query
                 .OrderBy(t => t.FirstName)
                 .ThenBy(t => t.LastName)
                 .ToListAsync();
             
             ViewBag.Gyms = await _context.Gyms.Where(g => g.IsActive).OrderBy(g => g.Name).ToListAsync();
             ViewBag.Services = await _context.Services.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+            ViewBag.SearchName = searchName;
+            ViewBag.SelectedGymId = gymId;
+            ViewBag.SelectedServiceId = serviceId;
             return View(trainers);
         }
 
@@ -677,11 +706,13 @@ namespace proje.Controllers
                     .Include(a => a.Member)
                         .ThenInclude(m => m.User)
                     .Include(a => a.Trainer)
+                        .ThenInclude(t => t.User)
                     .Include(a => a.GymService)
                         .ThenInclude(gs => gs.Service)
                     .FirstOrDefaultAsync(a => a.Id == id);
 
-                if (appointmentWithDetails?.Member?.User != null)
+                // Sadece üyeye bildirim gönder (trainer zaten randevuları görüyor)
+                if (appointmentWithDetails?.Member?.User != null && !string.IsNullOrEmpty(appointmentWithDetails.Member.User.Id))
                 {
                     var statusText = status == "Approved" ? "onaylandı" : "reddedildi";
                     await CreateNotificationAsync(

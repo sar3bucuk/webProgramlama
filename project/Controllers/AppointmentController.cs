@@ -368,7 +368,10 @@ namespace proje.Controllers
                         .Include(t => t.User)
                         .FirstOrDefaultAsync(t => t.Id == savedAppointment.TrainerId);
                     
-                    if (trainerForNotification?.User != null)
+                    var notifiedUserIds = new HashSet<string>();
+
+                    // Trainer'a bildirim gönder
+                    if (trainerForNotification?.User != null && !string.IsNullOrEmpty(trainerForNotification.User.Id))
                     {
                         await CreateNotificationAsync(
                             trainerForNotification.User.Id,
@@ -376,17 +379,23 @@ namespace proje.Controllers
                             $"{savedAppointment.Member?.FullName} adlı üye {savedAppointment.AppointmentDate:dd.MM.yyyy} tarihinde {savedAppointment.AppointmentTime:hh\\:mm} saatinde randevu talebinde bulundu.",
                             savedAppointment.Id
                         );
+                        notifiedUserIds.Add(trainerForNotification.User.Id);
                     }
 
+                    // Admin'lere bildirim gönder (eğer trainer admin değilse)
                     var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
                     foreach (var admin in adminUsers)
                     {
-                        await CreateNotificationAsync(
-                            admin.Id,
-                            "Yeni Randevu Talebi",
-                            $"{savedAppointment.Member?.FullName} adlı üye {savedAppointment.AppointmentDate:dd.MM.yyyy} tarihinde {savedAppointment.AppointmentTime:hh\\:mm} saatinde randevu talebinde bulundu.",
-                            savedAppointment.Id
-                        );
+                        if (!string.IsNullOrEmpty(admin.Id) && !notifiedUserIds.Contains(admin.Id))
+                        {
+                            await CreateNotificationAsync(
+                                admin.Id,
+                                "Yeni Randevu Talebi",
+                                $"{savedAppointment.Member?.FullName} adlı üye {savedAppointment.AppointmentDate:dd.MM.yyyy} tarihinde {savedAppointment.AppointmentTime:hh\\:mm} saatinde randevu talebinde bulundu.",
+                                savedAppointment.Id
+                            );
+                            notifiedUserIds.Add(admin.Id);
+                        }
                     }
 
                     await _context.SaveChangesAsync();
@@ -548,7 +557,10 @@ namespace proje.Controllers
                 _context.Update(appointment);
                 await _context.SaveChangesAsync();
 
-                if (appointment.Trainer?.User != null)
+                var notifiedUserIds = new HashSet<string>();
+
+                // Trainer'a bildirim gönder
+                if (appointment.Trainer?.User != null && !string.IsNullOrEmpty(appointment.Trainer.User.Id))
                 {
                     await CreateNotificationAsync(
                         appointment.Trainer.User.Id,
@@ -556,17 +568,23 @@ namespace proje.Controllers
                         $"{appointment.Member?.FullName} adlı üye {appointment.AppointmentDate:dd.MM.yyyy} tarihinde {appointment.AppointmentTime:hh\\:mm} saatindeki randevuyu iptal etti.",
                         appointment.Id
                     );
+                    notifiedUserIds.Add(appointment.Trainer.User.Id);
                 }
 
+                // Admin'lere bildirim gönder (eğer trainer admin değilse)
                 var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
                 foreach (var admin in adminUsers)
                 {
-                    await CreateNotificationAsync(
-                        admin.Id,
-                        "Randevu İptal Edildi",
-                        $"{appointment.Member?.FullName} adlı üye {appointment.AppointmentDate:dd.MM.yyyy} tarihinde {appointment.AppointmentTime:hh\\:mm} saatindeki randevuyu iptal etti.",
-                        appointment.Id
-                    );
+                    if (!string.IsNullOrEmpty(admin.Id) && !notifiedUserIds.Contains(admin.Id))
+                    {
+                        await CreateNotificationAsync(
+                            admin.Id,
+                            "Randevu İptal Edildi",
+                            $"{appointment.Member?.FullName} adlı üye {appointment.AppointmentDate:dd.MM.yyyy} tarihinde {appointment.AppointmentTime:hh\\:mm} saatindeki randevuyu iptal etti.",
+                            appointment.Id
+                        );
+                        notifiedUserIds.Add(admin.Id);
+                    }
                 }
 
                 await _context.SaveChangesAsync();

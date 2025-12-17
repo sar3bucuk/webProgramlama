@@ -13,6 +13,11 @@
     <div class="auth-container-modern" style="max-width: 1000px;">
         <div class="auth-card-modern">
             <div class="auth-header-modern">
+                <div class="d-flex justify-content-end align-items-center mb-3">
+                    <a href="@Url.Action("MyAppointments", "Appointment")" class="btn btn-outline-secondary back-btn-edit">
+                        <i class="bi bi-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
                 <h2 class="auth-title-modern">Randevu Al</h2>
                 <p class="auth-subtitle-modern">Antrenörünüzle randevu oluşturun</p>
             </div>
@@ -405,6 +410,13 @@
         background: #475569;
         color: white;
         text-decoration: none;
+    }
+
+    .back-btn-edit {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-radius: 8px;
     }
 
     .trainer-info-card {

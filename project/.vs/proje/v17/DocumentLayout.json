@@ -84,30 +84,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Members.cshtml",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
-              "RelativeDocumentMoniker": "Views\\Admin\\Members.cshtml",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
-              "RelativeToolTip": "Views\\Admin\\Members.cshtml",
-              "ViewState": "AgIAAB0AAAAAAAAAAAAMwC4AAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-07T20:11:19.297Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "Data\\ApplicationDbContext.cs",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "Data\\ApplicationDbContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-05T14:26:54.859Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 12,
               "Title": "20251203201611_InitialIdentityMigration.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Migrations\\20251203201611_InitialIdentityMigration.cs",
@@ -153,6 +129,30 @@
               "ViewState": "AgIAAFkAAAAAAAAAAAAswGQAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-12-08T21:54:44.295Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Members.cshtml",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\Members.cshtml",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
+              "RelativeToolTip": "Views\\Admin\\Members.cshtml",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAMwC4AAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-07T20:11:19.297Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "Data\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-05T14:26:54.859Z"
             },
             {
               "$type": "Document",

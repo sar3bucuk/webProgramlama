@@ -271,16 +271,60 @@
 
 @Html.AntiForgeryToken()
 
+<!-- İptal Onay Modal -->
+<div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content cancel-confirm-modal">
+            <div class="modal-body">
+                <div class="cancel-confirm-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h5 class="cancel-confirm-title">Randevuyu İptal Etmek İstediğinizden Emin misiniz?</h5>
+                <p class="cancel-confirm-message">Bu işlem geri alınamaz. Randevunuz iptal edilecek ve antrenörünüze bildirim gönderilecektir.</p>
+                <div class="cancel-confirm-actions">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Evet, İptal Et</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Başarı/Hata Bildirim Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content notification-modal">
+            <div class="modal-body">
+                <div class="notification-icon" id="notificationIcon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h5 class="notification-title" id="notificationTitle">Başarılı</h5>
+                <p class="notification-message" id="notificationMessage"></p>
+                <div class="notification-actions">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tamam</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    let currentAppointmentId = null;
+
     function cancelAppointment(appointmentId) {
-        if (!confirm('Randevuyu iptal etmek istediğinizden emin misiniz?')) {
-            return;
-        }
+        currentAppointmentId = appointmentId;
+        const modal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+        modal.show();
+    }
+
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        if (!currentAppointmentId) return;
 
         const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
         
         if (!token) {
-            alert('Güvenlik token\'ı bulunamadı. Sayfayı yenileyip tekrar deneyin.');
+            showNotification('Hata', 'Güvenlik token\'ı bulunamadı. Sayfayı yenileyip tekrar deneyin.', false);
+            bootstrap.Modal.getInstance(document.getElementById('cancelConfirmModal')).hide();
             return;
         }
 
@@ -291,23 +335,51 @@
                 'RequestVerificationToken': token
             },
             body: new URLSearchParams({
-                id: appointmentId,
+                id: currentAppointmentId,
                 __RequestVerificationToken: token
             })
         })
         .then(response => response.json())
         .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById('cancelConfirmModal')).hide();
+            
             if (data.success) {
-                alert(data.message || 'Randevu başarıyla iptal edildi.');
-                location.reload();
+                showNotification('Başarılı', data.message || 'Randevu başarıyla iptal edildi.', true);
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             } else {
-                alert(data.message || 'Randevu iptal edilirken bir hata oluştu.');
+                showNotification('Hata', data.message || 'Randevu iptal edilirken bir hata oluştu.', false);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Bir hata oluştu.');
+            bootstrap.Modal.getInstance(document.getElementById('cancelConfirmModal')).hide();
+            showNotification('Hata', 'Bir hata oluştu. Lütfen tekrar deneyin.', false);
         });
+    });
+
+    function showNotification(title, message, isSuccess) {
+        const modal = document.getElementById('notificationModal');
+        const icon = document.getElementById('notificationIcon');
+        const titleEl = document.getElementById('notificationTitle');
+        const messageEl = document.getElementById('notificationMessage');
+        
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        
+        if (isSuccess) {
+            icon.innerHTML = '<i class="bi bi-check-circle"></i>';
+            icon.className = 'notification-icon success';
+            titleEl.className = 'notification-title success';
+        } else {
+            icon.innerHTML = '<i class="bi bi-x-circle"></i>';
+            icon.className = 'notification-icon error';
+            titleEl.className = 'notification-title error';
+        }
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
     }
 </script>
 
@@ -364,5 +436,177 @@
         color: #1e293b;
         border-bottom-color: #3b82f6;
         background: transparent;
+    }
+
+    /* İptal Onay Modal Stilleri */
+    .cancel-confirm-modal {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .cancel-confirm-modal .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .cancel-confirm-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+
+    .cancel-confirm-icon i {
+        font-size: 2.5rem;
+        color: #dc2626;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .cancel-confirm-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .cancel-confirm-message {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .cancel-confirm-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .cancel-confirm-actions .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-confirm-actions .btn-secondary {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .cancel-confirm-actions .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    .cancel-confirm-actions .btn-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border: none;
+        color: white;
+    }
+
+    .cancel-confirm-actions .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Bildirim Modal Stilleri */
+    .notification-modal {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .notification-modal .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .notification-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-icon.success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    }
+
+    .notification-icon.success i {
+        font-size: 2.5rem;
+        color: #059669;
+    }
+
+    .notification-icon.error {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    }
+
+    .notification-icon.error i {
+        font-size: 2.5rem;
+        color: #dc2626;
+    }
+
+    .notification-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .notification-title.success {
+        color: #059669;
+    }
+
+    .notification-title.error {
+        color: #dc2626;
+    }
+
+    .notification-message {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .notification-actions {
+        display: flex;
+        justify-content: center;
+    }
+
+    .notification-actions .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .notification-actions .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+    }
+
+    .notification-actions .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
 </style>
