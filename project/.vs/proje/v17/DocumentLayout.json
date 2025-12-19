@@ -84,30 +84,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "20251203201611_InitialIdentityMigration.cs",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Migrations\\20251203201611_InitialIdentityMigration.cs",
-              "RelativeDocumentMoniker": "Migrations\\20251203201611_InitialIdentityMigration.cs",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Migrations\\20251203201611_InitialIdentityMigration.cs",
-              "RelativeToolTip": "Migrations\\20251203201611_InitialIdentityMigration.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-05T14:26:22.66Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAFkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-03T20:15:39.453Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 1,
               "Title": "TrainerController.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\TrainerController.cs",
@@ -153,6 +129,30 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-05T14:26:54.859Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "20251203201611_InitialIdentityMigration.cs",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Migrations\\20251203201611_InitialIdentityMigration.cs",
+              "RelativeDocumentMoniker": "Migrations\\20251203201611_InitialIdentityMigration.cs",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Migrations\\20251203201611_InitialIdentityMigration.cs",
+              "RelativeToolTip": "Migrations\\20251203201611_InitialIdentityMigration.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-05T14:26:22.66Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAFkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T20:15:39.453Z"
             },
             {
               "$type": "Document",

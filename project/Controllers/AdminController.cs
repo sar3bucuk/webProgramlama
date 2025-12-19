@@ -756,6 +756,9 @@ namespace proje.Controllers
         {
             var trainer = await _context.Trainers
                 .Include(t => t.Appointments)
+                .Include(t => t.TrainerSpecializations)
+                .Include(t => t.TrainerServices)
+                .Include(t => t.TrainerAvailabilities)
                 .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -766,19 +769,57 @@ namespace proje.Controllers
 
             try
             {
+                // UserId'yi sakla çünkü User silindikten sonra erişemeyiz
+                var userId = trainer.UserId;
+
+                // 1. Önce tüm ilişkili verileri sil
                 if (trainer.Appointments != null && trainer.Appointments.Any())
                 {
                     _context.Appointments.RemoveRange(trainer.Appointments);
                 }
 
-                if (trainer.User != null)
+                if (trainer.TrainerSpecializations != null && trainer.TrainerSpecializations.Any())
                 {
-                    await _userManager.DeleteAsync(trainer.User);
+                    _context.TrainerSpecializations.RemoveRange(trainer.TrainerSpecializations);
                 }
-                
-                _context.Trainers.Remove(trainer);
-                
+
+                if (trainer.TrainerServices != null && trainer.TrainerServices.Any())
+                {
+                    _context.TrainerServices.RemoveRange(trainer.TrainerServices);
+                }
+
+                if (trainer.TrainerAvailabilities != null && trainer.TrainerAvailabilities.Any())
+                {
+                    _context.TrainerAvailabilities.RemoveRange(trainer.TrainerAvailabilities);
+                }
+
+                // 2. İlişkili verileri kaydet
                 await _context.SaveChangesAsync();
+
+                // 3. Trainer'ı sil (User'dan önce)
+                _context.Trainers.Remove(trainer);
+                await _context.SaveChangesAsync();
+
+                // 4. En son User'ı sil
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var user = await _userManager.FindByIdAsync(userId);
+                    if (user != null)
+                    {
+                        await _userManager.DeleteAsync(user);
+                    }
+                }
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                // Concurrency hatası durumunda, trainer'ın zaten silinip silinmediğini kontrol et
+                var trainerExists = await _context.Trainers.AnyAsync(t => t.Id == id);
+                if (!trainerExists)
+                {
+                    // Trainer zaten silinmiş, başarılı sayılabilir
+                    return Json(new { success = true, message = "Antrenör başarıyla silindi." });
+                }
+                return Json(new { success = false, message = $"Antrenör silinirken bir hata oluştu: {ex.Message}" });
             }
             catch (Exception ex)
             {
