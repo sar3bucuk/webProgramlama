@@ -1,0 +1,251 @@
+@model List<proje.Models.Message>
+@{
+    ViewData["Title"] = "Konuşma";
+    Layout = "_Layout";
+    var isTrainer = User.IsInRole("Trainer");
+    var otherUser = ViewBag.OtherUser as dynamic;
+    var otherUserType = ViewBag.OtherUserType as string;
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1000px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="auth-title-modern">@(otherUser?.FullName ?? "Konuşma")</h2>
+                        <p class="auth-subtitle-modern">@(isTrainer ? "Üye" : "Antrenör") ile konuşma</p>
+                    </div>
+                    <a href="@Url.Action("Index", "Message")" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Geri
+                    </a>
+                </div>
+            </div>
+
+            <div class="conversation-container">
+                <div id="messagesContainer" class="messages-container">
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var message in Model)
+                        {
+                            var isSent = (isTrainer && message.SenderTrainerId != null) || (!isTrainer && message.SenderMemberId != null);
+                            <div class="message @(isSent ? "message-sent" : "message-received")">
+                                <div class="message-content">
+                                    <p>@message.Content</p>
+                                    <small class="message-time">
+                                        @message.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                                        @if (message.IsRead && isSent)
+                                        {
+                                            <span class="text-success ms-2">✓✓</span>
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            Henüz mesaj yok. İlk mesajınızı gönderin!
+                        </div>
+                    }
+                </div>
+
+                <div class="message-input-container">
+                    <form id="sendMessageForm">
+                        @Html.AntiForgeryToken()
+                        <div class="input-group">
+                            <textarea id="messageContent" class="form-control" rows="2" placeholder="Mesajınızı yazın..."></textarea>
+                            <button type="submit" class="btn btn-primary" id="sendMessageBtn">
+                                <i class="bi bi-send"></i> Gönder
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .conversation-container {
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+        margin-top: 2rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 1rem;
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    .message-sent {
+        justify-content: flex-end;
+    }
+
+    .message-received {
+        justify-content: flex-start;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-sent .message-content {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message-received .message-content {
+        background: #f1f5f9;
+        color: var(--text-dark);
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-content p {
+        margin: 0 0 0.5rem 0;
+        word-wrap: break-word;
+    }
+
+    .message-time {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+
+    .message-input-container {
+        padding: 1.5rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+        background: #f8f9fa;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .input-group textarea {
+        resize: none;
+        flex: 1;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #messagesContainer::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #messagesContainer::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    #messagesContainer::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    #messagesContainer::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Auto-scroll to bottom
+        const messagesContainer = document.getElementById('messagesContainer');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Send message form
+        document.getElementById('sendMessageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const content = document.getElementById('messageContent').value.trim();
+            if (!content) {
+                alert('Lütfen bir mesaj yazın.');
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendMessageBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Gönderiliyor...';
+
+            const formData = new FormData();
+            formData.append('otherUserId', '@(otherUser?.Id)');
+            formData.append('otherUserType', '@otherUserType');
+            formData.append('content', content);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            fetch('@Url.Action("SendMessage", "Message")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear input
+                    document.getElementById('messageContent').value = '';
+                    
+                    // Reload page to show new message
+                    location.reload();
+                } else {
+                    alert(data.message || 'Mesaj gönderilirken bir hata oluştu.');
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="bi bi-send"></i> Gönder';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="bi bi-send"></i> Gönder';
+            });
+        });
+
+        // Auto-refresh every 10 seconds to check for new messages
+        setInterval(function() {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newMessages = doc.querySelectorAll('.message');
+                    const currentMessages = document.querySelectorAll('.message');
+                    
+                    if (newMessages.length > currentMessages.length) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error checking for new messages:', error));
+        }, 10000);
+    </script>
+}

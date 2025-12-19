@@ -1,0 +1,221 @@
+@model List<proje.Controllers.ConversationViewModel>
+@{
+    ViewData["Title"] = "Mesajlarım";
+    Layout = "_Layout";
+}
+
+<div class="auth-page-modern">
+    <div class="auth-stars-background"></div>
+    <div class="auth-container-modern" style="max-width: 1200px;">
+        <div class="auth-card-modern admin-dashboard-card">
+            <div class="auth-header-modern">
+                <h2 class="auth-title-modern">Mesajlarım</h2>
+                <p class="auth-subtitle-modern">Antrenörler ve üyeler ile mesajlaşın</p>
+            </div>
+
+            @if (ViewBag.Trainers != null)
+            {
+                <div class="mb-4">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConversationModal">
+                        <i class="bi bi-plus-circle"></i> Yeni Konuşma Başlat
+                    </button>
+                </div>
+            }
+
+            @if (ViewBag.Members != null)
+            {
+                <div class="mb-4">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConversationModal">
+                        <i class="bi bi-plus-circle"></i> Yeni Konuşma Başlat
+                    </button>
+                </div>
+            }
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="conversations-list">
+                    @foreach (var conversation in Model)
+                    {
+                        <a href="@Url.Action("Conversation", "Message", new { otherUserId = conversation.OtherUserId, otherUserType = conversation.OtherUserType })" 
+                           class="conversation-item">
+                            <div class="conversation-info">
+                                <div class="conversation-header">
+                                    <h5>@conversation.OtherUserName</h5>
+                                    @if (conversation.UnreadCount > 0)
+                                    {
+                                        <span class="badge bg-primary">@conversation.UnreadCount</span>
+                                    }
+                                </div>
+                                <p class="conversation-preview">@(conversation.LastMessage.Length > 50 ? conversation.LastMessage.Substring(0, 50) + "..." : conversation.LastMessage)</p>
+                                <small class="text-muted">@conversation.LastMessageDate.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Henüz mesajınız bulunmamaktadır.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- New Conversation Modal -->
+@if (ViewBag.Trainers != null || ViewBag.Members != null)
+{
+    <div class="modal fade" id="newConversationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yeni Konuşma Başlat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (ViewBag.Trainers != null)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Antrenör Seçin</label>
+                            <select id="selectedTrainerId" class="form-select">
+                                <option value="">Antrenör seçin...</option>
+                                @foreach (var trainer in ViewBag.Trainers)
+                                {
+                                    <option value="@trainer.Id">@trainer.FullName</option>
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    @if (ViewBag.Members != null)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Üye Seçin</label>
+                            <select id="selectedMemberId" class="form-select">
+                                <option value="">Üye seçin...</option>
+                                @foreach (var member in ViewBag.Members)
+                                {
+                                    <option value="@member.Id">@member.FullName</option>
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">İlk Mesajınız</label>
+                        <textarea id="initialMessage" class="form-control" rows="4" placeholder="Mesajınızı yazın..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="startConversationBtn">Gönder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .conversations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .conversation-item {
+        display: block;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .conversation-item:hover {
+        background: #e9ecef;
+        border-color: #3b82f6;
+        transform: translateX(5px);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .conversation-info {
+        width: 100%;
+    }
+
+    .conversation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .conversation-header h5 {
+        margin: 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .conversation-preview {
+        color: #64748b;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.getElementById('startConversationBtn')?.addEventListener('click', function() {
+            const trainerId = document.getElementById('selectedTrainerId')?.value;
+            const memberId = document.getElementById('selectedMemberId')?.value;
+            const message = document.getElementById('initialMessage')?.value;
+
+            if ((!trainerId && !memberId) || !message || message.trim() === '') {
+                alert('Lütfen tüm alanları doldurun.');
+                return;
+            }
+
+            const otherUserId = trainerId || memberId;
+            const otherUserType = trainerId ? 'Trainer' : 'Member';
+
+            fetch('@Url.Action("SendMessage", "Message")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: new URLSearchParams({
+                    otherUserId: otherUserId,
+                    otherUserType: otherUserType,
+                    content: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '@Url.Action("Conversation", "Message")?otherUserId=' + otherUserId + '&otherUserType=' + otherUserType;
+                } else {
+                    alert(data.message || 'Mesaj gönderilirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        });
+
+        // Add CSRF token to form
+        const form = document.createElement('form');
+        form.innerHTML = '@Html.AntiForgeryToken()';
+        document.body.appendChild(form);
+    </script>
+}

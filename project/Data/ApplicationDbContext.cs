@@ -25,6 +25,7 @@ namespace proje.Data
         public DbSet<AIRecommendation> AIRecommendations { get; set; }
         public DbSet<NutritionPlan> NutritionPlans { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -396,6 +397,67 @@ namespace proje.Data
                 
                 // Indexes
                 entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.IsRead);
+                entity.HasIndex(e => e.CreatedDate);
+            });
+
+            // =============================================
+            // MESSAGES TABLE
+            // =============================================
+            builder.Entity<Message>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SenderMemberId);
+                entity.Property(e => e.SenderTrainerId);
+                entity.Property(e => e.ReceiverMemberId);
+                entity.Property(e => e.ReceiverTrainerId);
+                entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
+                entity.Property(e => e.IsRead).IsRequired().HasDefaultValue(false);
+                entity.Property(e => e.ReadDate);
+                entity.Property(e => e.CreatedDate).IsRequired().HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.ReplyToMessageId);
+                
+                // Check constraint: Either SenderMemberId or SenderTrainerId must be set, not both
+                entity.ToTable(t => t.HasCheckConstraint(
+                    "CK_Messages_Sender", 
+                    "([SenderMemberId] IS NOT NULL AND [SenderTrainerId] IS NULL) OR ([SenderMemberId] IS NULL AND [SenderTrainerId] IS NOT NULL)"));
+                
+                // Check constraint: Either ReceiverMemberId or ReceiverTrainerId must be set, not both
+                entity.ToTable(t => t.HasCheckConstraint(
+                    "CK_Messages_Receiver", 
+                    "([ReceiverMemberId] IS NOT NULL AND [ReceiverTrainerId] IS NULL) OR ([ReceiverMemberId] IS NULL AND [ReceiverTrainerId] IS NOT NULL)"));
+                
+                // Foreign keys - Use NO ACTION to avoid cascade path conflicts
+                entity.HasOne(m => m.SenderMember)
+                    .WithMany()
+                    .HasForeignKey(m => m.SenderMemberId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.HasOne(m => m.SenderTrainer)
+                    .WithMany()
+                    .HasForeignKey(m => m.SenderTrainerId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.HasOne(m => m.ReceiverMember)
+                    .WithMany()
+                    .HasForeignKey(m => m.ReceiverMemberId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.HasOne(m => m.ReceiverTrainer)
+                    .WithMany()
+                    .HasForeignKey(m => m.ReceiverTrainerId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                entity.HasOne(m => m.ReplyToMessage)
+                    .WithMany()
+                    .HasForeignKey(m => m.ReplyToMessageId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                
+                // Indexes
+                entity.HasIndex(e => e.SenderMemberId);
+                entity.HasIndex(e => e.SenderTrainerId);
+                entity.HasIndex(e => e.ReceiverMemberId);
+                entity.HasIndex(e => e.ReceiverTrainerId);
                 entity.HasIndex(e => e.IsRead);
                 entity.HasIndex(e => e.CreatedDate);
             });
