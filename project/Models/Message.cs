@@ -21,6 +21,13 @@ namespace proje.Models
         [Display(Name = "Alıcı Antrenör")]
         public int? ReceiverTrainerId { get; set; }
 
+        // Admin messaging support (IdentityUser ID as string)
+        [Display(Name = "Gönderen Admin")]
+        public string? SenderAdminUserId { get; set; }
+
+        [Display(Name = "Alıcı Admin")]
+        public string? ReceiverAdminUserId { get; set; }
+
         [Required(ErrorMessage = "Mesaj içeriği gereklidir.")]
         [StringLength(2000, ErrorMessage = "Mesaj en fazla 2000 karakter olabilir.")]
         [Display(Name = "Mesaj")]

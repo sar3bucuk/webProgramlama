@@ -340,6 +340,168 @@ namespace proje.Controllers
                 return Json(new { success = false, message = $"Mesaj gönderilirken hata oluştu: {ex.Message}" });
             }
         }
+
+        /// <summary>
+        /// Member'in tüm konuşmalarını JSON olarak döner
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetConversations()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+            if (member == null)
+            {
+                return Json(new { success = false, message = "Üye bulunamadı." });
+            }
+
+            var conversations = new List<object>();
+
+            // Member-Trainer mesajları
+            var trainerIds = await _context.Messages
+                .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId != null) ||
+                            (m.ReceiverMemberId == member.Id && m.SenderTrainerId != null))
+                .Select(m => m.ReceiverTrainerId ?? m.SenderTrainerId ?? 0)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var trainerId in trainerIds)
+            {
+                var trainer = await _context.Trainers
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == trainerId);
+
+                if (trainer != null)
+                {
+                    var lastMessage = await _context.Messages
+                        .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId == trainerId) ||
+                                    (m.ReceiverMemberId == member.Id && m.SenderTrainerId == trainerId))
+                        .OrderByDescending(m => m.CreatedDate)
+                        .FirstOrDefaultAsync();
+
+                    var unreadCount = await _context.Messages
+                        .CountAsync(m => m.ReceiverMemberId == member.Id && 
+                                       m.SenderTrainerId == trainerId && 
+                                       !m.IsRead);
+
+                    conversations.Add(new
+                    {
+                        otherUserId = trainer.Id,
+                        otherUserName = trainer.FullName,
+                        otherUserType = "Trainer",
+                        lastMessage = lastMessage?.Content ?? "",
+                        lastMessageDate = lastMessage?.CreatedDate ?? DateTime.MinValue,
+                        unreadCount = unreadCount
+                    });
+                }
+            }
+
+            return Json(new { success = true, conversations = conversations.OrderByDescending(c => ((dynamic)c).lastMessageDate) });
+        }
+
+        /// <summary>
+        /// Belirli bir trainer ile konuşmayı JSON olarak döner (Member için)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetConversationMessages(int trainerId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+            if (member == null)
+            {
+                return Json(new { success = false, message = "Üye bulunamadı." });
+            }
+
+            var messages = await _context.Messages
+                .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId == trainerId) ||
+                            (m.ReceiverMemberId == member.Id && m.SenderTrainerId == trainerId))
+                .Include(m => m.SenderTrainer)
+                .Include(m => m.ReceiverTrainer)
+                .OrderBy(m => m.CreatedDate)
+                .Select(m => new
+                {
+                    id = m.Id,
+                    content = m.Content,
+                    createdDate = m.CreatedDate,
+                    isRead = m.IsRead,
+                    isSent = m.SenderMemberId == member.Id
+                })
+                .ToListAsync();
+
+            // Okunmamış mesajları okundu işaretle
+            var unreadMessages = await _context.Messages
+                .Where(m => m.ReceiverMemberId == member.Id && 
+                           m.SenderTrainerId == trainerId && 
+                           !m.IsRead)
+                .ToListAsync();
+
+            foreach (var msg in unreadMessages)
+            {
+                msg.IsRead = true;
+                msg.ReadDate = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+
+            var trainer = await _context.Trainers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Id == trainerId);
+
+            return Json(new { 
+                success = true, 
+                messages = messages,
+                trainer = trainer != null ? new { id = trainer.Id, name = trainer.FullName } : null
+            });
+        }
+
+        /// <summary>
+        /// Okunmamış mesaj sayısını döner (Member için)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetUnreadMessageCount()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, count = 0 });
+            }
+
+            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+            if (member == null)
+            {
+                return Json(new { success = false, count = 0 });
+            }
+
+            var count = await _context.Messages
+                .CountAsync(m => m.ReceiverMemberId == member.Id && !m.IsRead);
+
+            return Json(new { success = true, count = count });
+        }
+
+        /// <summary>
+        /// Yeni konuşma başlatmak için aktif antrenörleri JSON olarak döner (Member için)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableTrainers()
+        {
+            var trainers = await _context.Trainers
+                .Where(t => t.IsActive)
+                .OrderBy(t => t.FirstName)
+                .ThenBy(t => t.LastName)
+                .Select(t => new { id = t.Id, name = t.FullName })
+                .ToListAsync();
+
+            return Json(new { success = true, trainers = trainers });
+        }
     }
 
     /// <summary>

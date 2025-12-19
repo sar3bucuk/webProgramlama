@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|c:\\users\\saren\\onedrive\\desktop\\webprogramlama\\project\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|solutionrelative:views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|c:\\users\\saren\\onedrive\\desktop\\webprogramlama\\project\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|solutionrelative:controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|c:\\users\\saren\\onedrive\\desktop\\webprogramlama\\project\\controllers\\gymscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|solutionrelative:controllers\\gymscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -13,10 +21,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|c:\\users\\saren\\onedrive\\desktop\\webprogramlama\\project\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|c:\\users\\saren\\onedrive\\desktop\\webprogramlama\\project\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|solutionrelative:views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B77DA54D-B4E3-4FF0-B547-1A8D2A7EE7E4}|proje.csproj|c:\\users\\saren\\onedrive\\desktop\\webprogramlama\\project\\views\\trainer\\editappointment.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
@@ -59,19 +63,28 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AdminController.cs",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "Controllers\\AdminController.cs",
+              "ViewState": "AgIAAOMDAAAAAAAAAAApwPUDAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-19T20:15:07.09Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "GymsController.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\GymsController.cs",
               "RelativeDocumentMoniker": "Controllers\\GymsController.cs",
@@ -84,19 +97,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "EditAppointment.cshtml",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
-              "RelativeDocumentMoniker": "Views\\Trainer\\EditAppointment.cshtml",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
-              "RelativeToolTip": "Views\\Trainer\\EditAppointment.cshtml",
-              "ViewState": "AgIAAFkAAAAAAAAAAAAswGQAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-08T21:54:44.295Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Members.cshtml",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
               "RelativeDocumentMoniker": "Views\\Admin\\Members.cshtml",
@@ -108,7 +109,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Data\\ApplicationDbContext.cs",
               "RelativeDocumentMoniker": "Data\\ApplicationDbContext.cs",
@@ -120,7 +121,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "20251203201611_InitialIdentityMigration.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Migrations\\20251203201611_InitialIdentityMigration.cs",
               "RelativeDocumentMoniker": "Migrations\\20251203201611_InitialIdentityMigration.cs",
@@ -132,7 +133,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -144,7 +145,24 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAFQBAAAAAAAAAAAtwGIBAABSAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-09T20:54:38.62Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "TrainerController.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\TrainerController.cs",
               "RelativeDocumentMoniker": "Controllers\\TrainerController.cs",
@@ -156,19 +174,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "_Layout.cshtml",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Shared\\_Layout.cshtml",
-              "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Shared\\_Layout.cshtml",
-              "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFMAAAAdAAAAAAAAAA==",
+              "DocumentIndex": 5,
+              "Title": "EditAppointment.cshtml",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
+              "RelativeDocumentMoniker": "Views\\Trainer\\EditAppointment.cshtml",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Trainer\\EditAppointment.cshtml",
+              "RelativeToolTip": "Views\\Trainer\\EditAppointment.cshtml",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAswGQAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-09T20:54:38.62Z"
+              "WhenOpened": "2025-12-08T21:54:44.295Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Index.cshtml",
               "RelativeDocumentMoniker": "Views\\Admin\\Index.cshtml",
@@ -180,7 +198,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje\\Data\\ApplicationDbContext.cs",
               "RelativeDocumentMoniker": "..\\proje\\Data\\ApplicationDbContext.cs",
@@ -192,7 +210,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "EditGym.cshtml",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\EditGym.cshtml",
               "RelativeDocumentMoniker": "Views\\Admin\\EditGym.cshtml",
@@ -204,7 +222,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "DbInitializer.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje\\Data\\DbInitializer.cs",
               "RelativeDocumentMoniker": "..\\proje\\Data\\DbInitializer.cs",
@@ -216,7 +234,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "ApplicationDbContextModelSnapshot.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\proje\\Migrations\\ApplicationDbContextModelSnapshot.cs",
               "RelativeDocumentMoniker": "..\\proje\\Migrations\\ApplicationDbContextModelSnapshot.cs",
