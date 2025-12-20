@@ -59,6 +59,7 @@ namespace proje.Controllers
                 .Include(t => t.Gym)
                 .Include(t => t.TrainerServices)
                     .ThenInclude(ts => ts.Service)
+                .Include(t => t.TrainerAvailabilities)
                 .FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
 
             if (trainer == null)
@@ -85,6 +86,7 @@ namespace proje.Controllers
                 .Include(t => t.Gym)
                 .Include(t => t.TrainerServices)
                     .ThenInclude(ts => ts.Service)
+                .Include(t => t.TrainerAvailabilities)
                 .FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
 
             if (trainer == null)
@@ -522,6 +524,146 @@ namespace proje.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Hizmet başarıyla silindi." });
+        }
+
+        /// <summary>
+        /// Antrenör müsaitlik saatini ekler (JSON döner)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTrainerAvailability(int dayOfWeek, string startTime, string endTime, bool isAvailable = true)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var trainer = await _context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
+
+            if (trainer == null)
+            {
+                return Json(new { success = false, message = "Antrenör bulunamadı." });
+            }
+
+            var existingAvailability = await _context.TrainerAvailabilities
+                .FirstOrDefaultAsync(ta => ta.TrainerId == trainer.Id && ta.DayOfWeek == dayOfWeek);
+            
+            if (existingAvailability != null)
+            {
+                return Json(new { success = false, message = "Bu gün için zaten bir müsaitlik saati tanımlı." });
+            }
+
+            if (!TimeSpan.TryParse(startTime, out var startTimeSpan) || !TimeSpan.TryParse(endTime, out var endTimeSpan))
+            {
+                return Json(new { success = false, message = "Geçersiz saat formatı." });
+            }
+
+            if (startTimeSpan >= endTimeSpan)
+            {
+                return Json(new { success = false, message = "Başlangıç saati bitiş saatinden önce olmalıdır." });
+            }
+
+            var availability = new TrainerAvailability
+            {
+                TrainerId = trainer.Id,
+                DayOfWeek = dayOfWeek,
+                StartTime = startTimeSpan,
+                EndTime = endTimeSpan,
+                IsAvailable = isAvailable,
+                CreatedDate = DateTime.Now
+            };
+
+            _context.TrainerAvailabilities.Add(availability);
+            await _context.SaveChangesAsync();
+
+            return Json(new { 
+                success = true, 
+                message = "Müsaitlik saati başarıyla eklendi.",
+                availability = new {
+                    id = availability.Id,
+                    dayName = availability.DayName,
+                    startTime = availability.StartTime.ToString(@"hh\:mm"),
+                    endTime = availability.EndTime.ToString(@"hh\:mm")
+                }
+            });
+        }
+
+        /// <summary>
+        /// Antrenör müsaitlik saatini siler (JSON döner)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteTrainerAvailability(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            var trainer = await _context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
+
+            if (trainer == null)
+            {
+                return Json(new { success = false, message = "Antrenör bulunamadı." });
+            }
+
+            var availability = await _context.TrainerAvailabilities
+                .FirstOrDefaultAsync(ta => ta.Id == id && ta.TrainerId == trainer.Id);
+
+            if (availability == null)
+            {
+                return Json(new { success = false, message = "Müsaitlik saati bulunamadı veya bu saat size ait değil." });
+            }
+
+            _context.TrainerAvailabilities.Remove(availability);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Müsaitlik saati başarıyla silindi." });
+        }
+
+        /// <summary>
+        /// Antrenör şifresini değiştirir (JSON döner)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
+            }
+
+            if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
+            {
+                return Json(new { success = false, message = "Tüm alanları doldurun." });
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                return Json(new { success = false, message = "Yeni şifre ve şifre tekrarı eşleşmiyor." });
+            }
+
+            if (newPassword.Length < 6)
+            {
+                return Json(new { success = false, message = "Şifre en az 6 karakter olmalıdır." });
+            }
+
+            var result = await _userManager.ChangePasswordAsync(currentUser, currentPassword, newPassword);
+            
+            if (result.Succeeded)
+            {
+                return Json(new { success = true, message = "Şifre başarıyla değiştirildi." });
+            }
+            else
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return Json(new { success = false, message = $"Şifre değiştirilemedi: {errors}" });
+            }
         }
     }
 }

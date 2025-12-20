@@ -103,6 +103,38 @@
                     }
                 </div>
             </div>
+
+            <!-- Çalışma Saatleri Bölümü -->
+            <div class="services-section">
+                <div class="services-header">
+                    <h3>Çalışma Saatlerim</h3>
+                </div>
+
+                <div class="services-list">
+                    @if (Model.TrainerAvailabilities != null && Model.TrainerAvailabilities.Any())
+                    {
+                        @foreach (var availability in Model.TrainerAvailabilities.OrderBy(a => a.DayOfWeek))
+                        {
+                            <div class="service-item">
+                                <div class="service-info">
+                                    <h5>@availability.DayName</h5>
+                                    <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.875rem;">
+                                        @availability.StartTime.ToString(@"hh\:mm") - @availability.EndTime.ToString(@"hh\:mm")
+                                        @if (!availability.IsAvailable)
+                                        {
+                                            <span class="badge bg-secondary ms-2">Müsait Değil</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz çalışma saati tanımlanmamış.</p>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>

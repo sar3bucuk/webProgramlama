@@ -166,7 +166,7 @@ namespace proje.Controllers
         }
 
         /// <summary>
-        /// Beslenme programını siler
+        /// Beslenme programını siler (JSON döner)
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -175,7 +175,7 @@ namespace proje.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
-                return RedirectToAction("Login", "Account");
+                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
             }
 
             var member = await _context.Members
@@ -183,7 +183,7 @@ namespace proje.Controllers
 
             if (member == null)
             {
-                return RedirectToAction("Register", "Account");
+                return Json(new { success = false, message = "Üye bulunamadı." });
             }
 
             var nutritionPlan = await _context.NutritionPlans
@@ -191,22 +191,19 @@ namespace proje.Controllers
 
             if (nutritionPlan == null)
             {
-                TempData["ErrorMessage"] = "Beslenme programı bulunamadı veya silme yetkiniz yok.";
-                return RedirectToAction(nameof(MyPlans));
+                return Json(new { success = false, message = "Beslenme programı bulunamadı veya silme yetkiniz yok." });
             }
 
             try
             {
                 _context.NutritionPlans.Remove(nutritionPlan);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Beslenme programı başarıyla silindi.";
+                return Json(new { success = true, message = "Beslenme programı başarıyla silindi." });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Beslenme programı silinirken bir hata oluştu: {ex.Message}";
+                return Json(new { success = false, message = $"Beslenme programı silinirken bir hata oluştu: {ex.Message}" });
             }
-
-            return RedirectToAction(nameof(MyPlans));
         }
 
         /// <summary>

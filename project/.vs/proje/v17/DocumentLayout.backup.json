@@ -92,30 +92,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "GymsController.cs",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\GymsController.cs",
-              "RelativeDocumentMoniker": "Controllers\\GymsController.cs",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\GymsController.cs",
-              "RelativeToolTip": "Controllers\\GymsController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMcAAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-14T16:22:21.66Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Members.cshtml",
-              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
-              "RelativeDocumentMoniker": "Views\\Admin\\Members.cshtml",
-              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
-              "RelativeToolTip": "Views\\Admin\\Members.cshtml",
-              "ViewState": "AgIAAB0AAAAAAAAAAAAMwC4AAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-07T20:11:19.297Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 13,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Data\\ApplicationDbContext.cs",
@@ -161,6 +137,30 @@
               "ViewState": "AgIAAOMDAAAAAAAAAAApwPUDAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-19T20:15:07.09Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GymsController.cs",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\GymsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\GymsController.cs",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Controllers\\GymsController.cs",
+              "RelativeToolTip": "Controllers\\GymsController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMcAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-14T16:22:21.66Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Members.cshtml",
+              "DocumentMoniker": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\Members.cshtml",
+              "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Admin\\Members.cshtml",
+              "RelativeToolTip": "Views\\Admin\\Members.cshtml",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAMwC4AAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-07T20:11:19.297Z"
             },
             {
               "$type": "Document",

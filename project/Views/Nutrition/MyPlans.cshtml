@@ -129,44 +129,25 @@
 <!-- Silme Onay Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill"></i> Beslenme Programını Sil
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+        <div class="modal-content cancel-confirm-modal">
             <div class="modal-body">
-                <div class="alert alert-warning d-flex align-items-center" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
-                    <div>
-                        <strong>Dikkat!</strong> Bu işlem geri alınamaz.
+                <div class="cancel-confirm-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h5 class="cancel-confirm-title">Beslenme Programını Silmek İstediğinizden Emin misiniz?</h5>
+                <p class="cancel-confirm-message">Bu işlem geri alınamaz. Beslenme programı ve tüm bilgiler kalıcı olarak silinecektir.</p>
+                <div class="gym-delete-info">
+                    <div class="info-item-delete">
+                        <strong>Program:</strong> <span id="modalPlanGoal"></span>
+                    </div>
+                    <div class="info-item-delete">
+                        <strong>Oluşturulma:</strong> <span id="modalPlanDate"></span>
                     </div>
                 </div>
-                <p class="mb-3">
-                    Aşağıdaki beslenme programını silmek istediğinizden emin misiniz?
-                </p>
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <strong>Program:</strong> <span id="modalPlanGoal"></span><br>
-                        <small class="text-muted">Oluşturulma: <span id="modalPlanDate"></span></small>
-                    </div>
+                <div class="cancel-confirm-actions">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Evet, Sil</button>
                 </div>
-                <p class="text-muted mt-3 mb-0">
-                    <small>Bu program silindiğinde tüm bilgiler kalıcı olarak kaybolacaktır.</small>
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle"></i> İptal
-                </button>
-                <form id="deleteForm" asp-action="Delete" asp-controller="Nutrition" method="post" style="display: inline;">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" id="modalPlanId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash-fill"></i> Evet, Sil
-                    </button>
-                </form>
             </div>
         </div>
     </div>
@@ -175,6 +156,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var deleteModal = document.getElementById('deleteModal');
+        var currentPlanId = null;
+        
         if (deleteModal) {
             deleteModal.addEventListener('show.bs.modal', function(event) {
                 var button = event.relatedTarget;
@@ -182,11 +165,61 @@
                 var planGoal = button.getAttribute('data-plan-goal');
                 var planDate = button.getAttribute('data-plan-date');
                 
-                document.getElementById('modalPlanId').value = planId;
+                currentPlanId = planId;
                 document.getElementById('modalPlanGoal').textContent = planGoal;
                 document.getElementById('modalPlanDate').textContent = planDate;
             });
         }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (!currentPlanId) {
+                alert('Program ID bulunamadı.');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            if (!token) {
+                alert('Güvenlik token\'ı bulunamadı. Sayfayı yenileyip tekrar deneyin.');
+                return;
+            }
+
+            fetch('@Url.Action("Delete", "Nutrition")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: currentPlanId,
+                    __RequestVerificationToken: token
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                modal.hide();
+                
+                if (data.success) {
+                    // Başarı mesajı göster ve sayfayı yenile
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.setAttribute('role', 'alert');
+                    alertDiv.innerHTML = data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+                    
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alert(data.message || 'Beslenme programı silinirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+            });
+        });
     });
 </script>
 
@@ -200,6 +233,119 @@
     }
     .card-header {
         border-radius: 12px 12px 0 0 !important;
+    }
+
+    /* Silme Onay Modal Stilleri */
+    .cancel-confirm-modal {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .cancel-confirm-modal .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .cancel-confirm-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+
+    .cancel-confirm-icon i {
+        font-size: 2.5rem;
+        color: #dc2626;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .cancel-confirm-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .cancel-confirm-message {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .gym-delete-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        text-align: left;
+    }
+
+    .info-item-delete {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: #1e293b;
+    }
+
+    .info-item-delete:last-child {
+        border-bottom: none;
+    }
+
+    .info-item-delete strong {
+        color: #64748b;
+        margin-right: 0.5rem;
+        font-weight: 600;
+    }
+
+    .cancel-confirm-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .cancel-confirm-actions .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-confirm-actions .btn-secondary {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .cancel-confirm-actions .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    .cancel-confirm-actions .btn-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border: none;
+        color: white;
+    }
+
+    .cancel-confirm-actions .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     }
 </style>
 

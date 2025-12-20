@@ -92,6 +92,30 @@
                 </div>
             </form>
 
+            <!-- Şifre Değiştirme Bölümü -->
+            <div class="password-section">
+                <div class="services-header">
+                    <h3>Şifre Değiştir</h3>
+                </div>
+                <form id="changePasswordForm">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Mevcut Şifre</label>
+                        <input type="password" id="currentPassword" class="form-control-modern" required />
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Yeni Şifre</label>
+                        <input type="password" id="newPassword" class="form-control-modern" required minlength="6" />
+                        <small class="text-muted">En az 6 karakter olmalıdır.</small>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Yeni Şifre (Tekrar)</label>
+                        <input type="password" id="confirmPassword" class="form-control-modern" required minlength="6" />
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="changePassword()">Şifreyi Değiştir</button>
+                </form>
+            </div>
+
             <!-- Hizmetler Bölümü -->
             <div class="services-section">
                 <div class="services-header">
@@ -129,69 +153,177 @@
                 </div>
             </div>
 
-            <!-- Hizmet Ekleme Modal -->
-            <div class="modal fade" id="addTrainerServiceModal" tabindex="-1" aria-labelledby="addTrainerServiceModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addTrainerServiceModalLabel">Yeni Hizmet Ekle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addTrainerServiceForm">
-                                <input type="hidden" id="trainerId" value="@Model.Id" />
-                                <div class="form-group-modern">
-                                    <label class="form-label-modern">Hizmet</label>
-                                    <select id="trainerServiceId" class="form-control-modern" required>
-                                        <option value="">Hizmet Seçin</option>
-                                        @foreach (var service in services)
-                                        {
-                                            var isAlreadyAdded = Model.TrainerServices?.Any(ts => ts.ServiceId == service.Id) ?? false;
-                                            if (!isAlreadyAdded)
-                                            {
-                                                <option value="@service.Id">@service.Name</option>
-                                            }
-                                        }
-                                    </select>
+            <!-- Çalışma Saatleri Bölümü -->
+            <div class="availability-section">
+                <div class="services-header">
+                    <h3>Çalışma Saatlerim</h3>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAvailabilityModal">
+                        <span>+</span> Yeni Saat Ekle
+                    </button>
+                </div>
+
+                <div class="availability-list">
+                    @if (Model.TrainerAvailabilities != null && Model.TrainerAvailabilities.Any())
+                    {
+                        @foreach (var availability in Model.TrainerAvailabilities.OrderBy(a => a.DayOfWeek))
+                        {
+                            <div class="availability-item">
+                                <div class="availability-info">
+                                    <h5>@availability.DayName</h5>
+                                    <p>@availability.StartTime.ToString(@"hh\:mm") - @availability.EndTime.ToString(@"hh\:mm")</p>
+                                    @if (!availability.IsAvailable)
+                                    {
+                                        <span class="badge bg-secondary">Müsait Değil</span>
+                                    }
                                 </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-primary" onclick="addTrainerService()">Ekle</button>
-                        </div>
-                    </div>
+                                <div class="availability-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteAvailabilityModal"
+                                            data-availability-id="@availability.Id"
+                                            data-day-name="@availability.DayName">
+                                        Sil
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz çalışma saati eklenmemiş.</p>
+                    }
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Hizmet Silme Modal -->
-            <div class="modal fade" id="deleteTrainerServiceModal" tabindex="-1" aria-labelledby="deleteTrainerServiceModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-bottom: none;">
-                            <h5 class="modal-title" id="deleteTrainerServiceModalLabel">
-                                <span style="font-size: 1.5rem;">⚠️</span> Hizmet Sil
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert alert-warning">
-                                <strong>Uyarı!</strong> Bu işlem geri alınamaz. Hizmet silinecektir.
-                            </div>
-
-                            <div class="delete-info-modal">
-                                <p style="margin: 0; color: #1e293b; font-weight: 600;">
-                                    "<strong><span id="deleteServiceName"></span></strong>" hizmetini silmek istediğinizden emin misiniz?
-                                </p>
-                            </div>
-
-                            <input type="hidden" id="deleteTrainerServiceId" />
-                        </div>
-                        <div class="modal-footer" style="border-top: none;">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-danger" onclick="confirmDeleteTrainerService()">Evet, Sil</button>
-                        </div>
+<!-- Modals - auth-card-modern dışında -->
+<!-- Hizmet Ekleme Modal -->
+<div class="modal fade" id="addTrainerServiceModal" tabindex="-1" aria-labelledby="addTrainerServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTrainerServiceModalLabel">Yeni Hizmet Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTrainerServiceForm">
+                    <input type="hidden" id="trainerId" value="@Model.Id" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Hizmet</label>
+                        <select id="trainerServiceId" class="form-control-modern" required>
+                            <option value="">Hizmet Seçin</option>
+                            @foreach (var service in services)
+                            {
+                                var isAlreadyAdded = Model.TrainerServices?.Any(ts => ts.ServiceId == service.Id) ?? false;
+                                if (!isAlreadyAdded)
+                                {
+                                    <option value="@service.Id">@service.Name</option>
+                                }
+                            }
+                        </select>
                     </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="addTrainerService()">Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizmet Silme Modal -->
+<div class="modal fade" id="deleteTrainerServiceModal" tabindex="-1" aria-labelledby="deleteTrainerServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content cancel-confirm-modal">
+            <div class="modal-body">
+                <div class="cancel-confirm-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h5 class="cancel-confirm-title">Hizmeti Silmek İstediğinizden Emin misiniz?</h5>
+                <p class="cancel-confirm-message">Bu işlem geri alınamaz. Hizmet kalıcı olarak silinecektir.</p>
+                <div class="gym-delete-info">
+                    <div class="info-item-delete">
+                        <strong>Hizmet:</strong> <span id="deleteServiceName"></span>
+                    </div>
+                </div>
+                <input type="hidden" id="deleteTrainerServiceId" />
+                <div class="cancel-confirm-actions">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteTrainerService()">Evet, Sil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Müsaitlik Ekleme Modal -->
+<div class="modal fade" id="addAvailabilityModal" tabindex="-1" aria-labelledby="addAvailabilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAvailabilityModalLabel">Yeni Çalışma Saati Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAvailabilityForm">
+                    <input type="hidden" id="availabilityTrainerId" value="@Model.Id" />
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Haftanın Günü</label>
+                        <select id="availabilityDayOfWeek" class="form-control-modern" required>
+                            <option value="">Gün Seçin</option>
+                            <option value="0">Pazar</option>
+                            <option value="1">Pazartesi</option>
+                            <option value="2">Salı</option>
+                            <option value="3">Çarşamba</option>
+                            <option value="4">Perşembe</option>
+                            <option value="5">Cuma</option>
+                            <option value="6">Cumartesi</option>
+                        </select>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Başlangıç Saati</label>
+                        <input type="time" id="availabilityStartTime" class="form-control-modern" required />
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Bitiş Saati</label>
+                        <input type="time" id="availabilityEndTime" class="form-control-modern" required />
+                    </div>
+                    <div class="form-group-modern form-check-modern">
+                        <input type="checkbox" id="availabilityIsAvailable" class="form-check-input-modern" checked />
+                        <label class="form-check-label-modern" for="availabilityIsAvailable">Müsait</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="addAvailability()">Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Müsaitlik Silme Modal -->
+<div class="modal fade" id="deleteAvailabilityModal" tabindex="-1" aria-labelledby="deleteAvailabilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content cancel-confirm-modal">
+            <div class="modal-body">
+                <div class="cancel-confirm-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h5 class="cancel-confirm-title">Çalışma Saatini Silmek İstediğinizden Emin misiniz?</h5>
+                <p class="cancel-confirm-message">Bu işlem geri alınamaz. Çalışma saati kalıcı olarak silinecektir.</p>
+                <div class="gym-delete-info">
+                    <div class="info-item-delete">
+                        <strong>Gün:</strong> <span id="deleteDayName"></span>
+                    </div>
+                </div>
+                <input type="hidden" id="deleteAvailabilityId" />
+                <div class="cancel-confirm-actions">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteAvailability()">Evet, Sil</button>
                 </div>
             </div>
         </div>
@@ -282,6 +414,154 @@
                 alert('Bir hata oluştu.');
             });
         }
+
+        function addAvailability() {
+            const dayOfWeek = document.getElementById('availabilityDayOfWeek').value;
+            const startTime = document.getElementById('availabilityStartTime').value;
+            const endTime = document.getElementById('availabilityEndTime').value;
+            const isAvailable = document.getElementById('availabilityIsAvailable').checked;
+
+            if (!dayOfWeek || !startTime || !endTime) {
+                alert('Lütfen tüm alanları doldurun.');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                alert('Başlangıç saati bitiş saatinden önce olmalıdır.');
+                return;
+            }
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("AddTrainerAvailability", "Trainer")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    dayOfWeek: dayOfWeek,
+                    startTime: startTime,
+                    endTime: endTime,
+                    isAvailable: isAvailable,
+                    __RequestVerificationToken: token
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addAvailabilityModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Çalışma saati eklenirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function confirmDeleteAvailability() {
+            const id = document.getElementById('deleteAvailabilityId').value;
+
+            const token = document.querySelector('#editTrainerForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("DeleteTrainerAvailability", "Trainer")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    id: id,
+                    __RequestVerificationToken: token
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAvailabilityModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Çalışma saati silinirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('Lütfen tüm alanları doldurun.');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('Yeni şifre ve şifre tekrarı eşleşmiyor.');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Şifre en az 6 karakter olmalıdır.');
+                return;
+            }
+
+            const token = document.querySelector('#changePasswordForm input[name="__RequestVerificationToken"]')?.value || 
+                         document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("ChangePassword", "Trainer")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword,
+                    confirmPassword: confirmPassword,
+                    __RequestVerificationToken: token
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Şifre başarıyla değiştirildi.');
+                    document.getElementById('changePasswordForm').reset();
+                } else {
+                    alert(data.message || 'Şifre değiştirilemedi.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+
+        // Müsaitlik Silme Modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteAvailabilityModal = document.getElementById('deleteAvailabilityModal');
+            if (deleteAvailabilityModal) {
+                deleteAvailabilityModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const availabilityId = button.getAttribute('data-availability-id');
+                    const dayName = button.getAttribute('data-day-name');
+                    
+                    document.getElementById('deleteAvailabilityId').value = availabilityId;
+                    document.getElementById('deleteDayName').textContent = dayName || 'Gün';
+                });
+            }
+        });
     </script>
 }
 
@@ -398,6 +678,159 @@
         font-size: 0.9375rem;
         font-weight: 600;
         border-radius: 8px;
+    }
+
+    .password-section, .availability-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(226, 232, 240, 0.3);
+    }
+
+    .availability-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .availability-item {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .availability-info h5 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .availability-info p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    .availability-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Silme Onay Modal Stilleri */
+    .cancel-confirm-modal {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .cancel-confirm-modal .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .cancel-confirm-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+
+    .cancel-confirm-icon i {
+        font-size: 2.5rem;
+        color: #dc2626;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .cancel-confirm-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .cancel-confirm-message {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .gym-delete-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        text-align: left;
+    }
+
+    .info-item-delete {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: #1e293b;
+    }
+
+    .info-item-delete:last-child {
+        border-bottom: none;
+    }
+
+    .info-item-delete strong {
+        color: #64748b;
+        margin-right: 0.5rem;
+        font-weight: 600;
+    }
+
+    .cancel-confirm-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .cancel-confirm-actions .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-confirm-actions .btn-secondary {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .cancel-confirm-actions .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    .cancel-confirm-actions .btn-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border: none;
+        color: white;
+    }
+
+    .cancel-confirm-actions .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     }
 </style>
 

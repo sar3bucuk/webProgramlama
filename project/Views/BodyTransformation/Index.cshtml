@@ -11,6 +11,11 @@
     <div class="auth-container-modern" style="max-width: 1200px;">
         <div class="auth-card-modern admin-dashboard-card">
             <div class="auth-header-modern">
+                <div class="d-flex justify-content-start align-items-center mb-3">
+                    <a href="@Url.Action("Index", "Member")" class="btn btn-outline-secondary back-btn-edit">
+                        <i class="bi bi-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
                 <h2 class="auth-title-modern">🤖 AI Vücut Transformasyon Simülatörü</h2>
                 <p class="auth-subtitle-modern">Egzersiz programınız sonrası nasıl görüneceğinizi AI ile simüle edin</p>
             </div>
@@ -170,6 +175,13 @@
         width: 3rem;
         height: 3rem;
         border-width: 0.3em;
+    }
+
+    .back-btn-edit {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-radius: 8px;
     }
 </style>
 
