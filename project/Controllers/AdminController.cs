@@ -605,7 +605,6 @@ namespace proje.Controllers
         {
             var today = DateTime.Today;
             
-            // Güncel randevular: Bugün ve gelecekteki, tamamlanmamış, iptal edilmemiş, reddedilmemiş randevular
             var currentAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -621,7 +620,6 @@ namespace proje.Controllers
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 
-            // Geçmiş randevular: Tamamlanmış randevular
             var pastAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -635,7 +633,6 @@ namespace proje.Controllers
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 
-            // İptal ve reddedildi randevular
             var cancelledRejectedAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -711,7 +708,6 @@ namespace proje.Controllers
                         .ThenInclude(gs => gs.Service)
                     .FirstOrDefaultAsync(a => a.Id == id);
 
-                // Sadece üyeye bildirim gönder (trainer zaten randevuları görüyor)
                 if (appointmentWithDetails?.Member?.User != null && !string.IsNullOrEmpty(appointmentWithDetails.Member.User.Id))
                 {
                     var statusText = status == "Approved" ? "onaylandı" : "reddedildi";
@@ -769,10 +765,8 @@ namespace proje.Controllers
 
             try
             {
-                // UserId'yi sakla çünkü User silindikten sonra erişemeyiz
                 var userId = trainer.UserId;
 
-                // 1. Önce tüm ilişkili verileri sil
                 if (trainer.Appointments != null && trainer.Appointments.Any())
                 {
                     _context.Appointments.RemoveRange(trainer.Appointments);
@@ -793,14 +787,11 @@ namespace proje.Controllers
                     _context.TrainerAvailabilities.RemoveRange(trainer.TrainerAvailabilities);
                 }
 
-                // 2. İlişkili verileri kaydet
                 await _context.SaveChangesAsync();
 
-                // 3. Trainer'ı sil (User'dan önce)
                 _context.Trainers.Remove(trainer);
                 await _context.SaveChangesAsync();
 
-                // 4. En son User'ı sil
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var user = await _userManager.FindByIdAsync(userId);
@@ -812,11 +803,9 @@ namespace proje.Controllers
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                // Concurrency hatası durumunda, trainer'ın zaten silinip silinmediğini kontrol et
                 var trainerExists = await _context.Trainers.AnyAsync(t => t.Id == id);
                 if (!trainerExists)
                 {
-                    // Trainer zaten silinmiş, başarılı sayılabilir
                     return Json(new { success = true, message = "Antrenör başarıyla silindi." });
                 }
                 return Json(new { success = false, message = $"Antrenör silinirken bir hata oluştu: {ex.Message}" });
@@ -829,359 +818,6 @@ namespace proje.Controllers
             return Json(new { success = true, message = "Antrenör başarıyla silindi." });
         }
 
-        /// <summary>
-        /// Admin'in tüm konuşmalarını JSON olarak döner (Trainer ve Member'larla)
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetConversations()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            var conversations = new List<object>();
-
-            // Admin-Trainer mesajları (Sadece Admin'in gönderdiği mesajlar)
-            var trainerIds = await _context.Messages
-                .Where(m => m.SenderAdminUserId == currentUser.Id && m.ReceiverTrainerId != null)
-                .Select(m => m.ReceiverTrainerId ?? 0)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToListAsync();
-
-            foreach (var trainerId in trainerIds)
-            {
-                var trainer = await _context.Trainers
-                    .Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.Id == trainerId);
-
-                if (trainer != null)
-                {
-                    var lastMessage = await _context.Messages
-                        .Where(m => m.SenderAdminUserId == currentUser.Id && m.ReceiverTrainerId == trainerId)
-                        .OrderByDescending(m => m.CreatedDate)
-                        .FirstOrDefaultAsync();
-
-                    // Trainer'lar admin'e mesaj göndermediği için okunmamış mesaj sayısı 0
-                    var unreadCount = 0;
-
-                    conversations.Add(new
-                    {
-                        otherUserId = trainer.Id,
-                        otherUserName = trainer.FullName,
-                        otherUserType = "Trainer",
-                        lastMessage = lastMessage?.Content ?? "",
-                        lastMessageDate = lastMessage?.CreatedDate ?? DateTime.MinValue,
-                        unreadCount = unreadCount
-                    });
-                }
-            }
-
-            // Admin-Member mesajları (Sadece Admin'in gönderdiği mesajlar)
-            var memberIds = await _context.Messages
-                .Where(m => m.SenderAdminUserId == currentUser.Id && m.ReceiverMemberId != null)
-                .Select(m => m.ReceiverMemberId ?? 0)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToListAsync();
-
-            foreach (var memberId in memberIds)
-            {
-                var member = await _context.Members
-                    .Include(m => m.User)
-                    .FirstOrDefaultAsync(m => m.Id == memberId);
-
-                if (member != null)
-                {
-                    var lastMessage = await _context.Messages
-                        .Where(m => m.SenderAdminUserId == currentUser.Id && m.ReceiverMemberId == memberId)
-                        .OrderByDescending(m => m.CreatedDate)
-                        .FirstOrDefaultAsync();
-
-                    // Member'lar admin'e mesaj göndermediği için okunmamış mesaj sayısı 0
-                    var unreadCount = 0;
-
-                    conversations.Add(new
-                    {
-                        otherUserId = member.Id,
-                        otherUserName = member.FullName,
-                        otherUserType = "Member",
-                        lastMessage = lastMessage?.Content ?? "",
-                        lastMessageDate = lastMessage?.CreatedDate ?? DateTime.MinValue,
-                        unreadCount = unreadCount
-                    });
-                }
-            }
-
-            return Json(new { success = true, conversations = conversations.OrderByDescending(c => ((dynamic)c).lastMessageDate) });
-        }
-
-        /// <summary>
-        /// Belirli bir trainer veya member ile konuşmayı JSON olarak döner
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetConversationMessages(int? trainerId, int? memberId, string? userType)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            List<object> messages = new List<object>();
-            object? otherUser = null;
-
-            // Member ile konuşma kontrolü - userType == "Member" ise öncelikli
-            if (userType == "Member" || memberId.HasValue)
-            {
-                var mId = memberId ?? 0;
-                if (mId > 0)
-                {
-                    messages = (await _context.Messages
-                        .Where(m => m.SenderAdminUserId == currentUser.Id && m.ReceiverMemberId == mId)
-                        .Include(m => m.SenderMember)
-                        .Include(m => m.ReceiverMember)
-                        .OrderBy(m => m.CreatedDate)
-                        .Select(m => new
-                        {
-                            id = m.Id,
-                            content = m.Content,
-                            createdDate = m.CreatedDate,
-                            isRead = m.IsRead,
-                            isSent = true // Admin'in gönderdiği tüm mesajlar
-                        })
-                        .ToListAsync()).Cast<object>().ToList();
-
-                    var member = await _context.Members
-                        .Include(m => m.User)
-                        .FirstOrDefaultAsync(m => m.Id == mId);
-
-                    if (member == null)
-                    {
-                        return Json(new { success = false, message = "Üye bulunamadı." });
-                    }
-
-                    otherUser = new { id = member.Id, name = member.FullName };
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Geçersiz üye ID." });
-                }
-            }
-            // Trainer ile konuşma kontrolü
-            else if (userType == "Trainer" || trainerId.HasValue)
-            {
-                var tId = trainerId ?? 0;
-                if (tId > 0)
-                {
-                    messages = (await _context.Messages
-                        .Where(m => m.SenderAdminUserId == currentUser.Id && m.ReceiverTrainerId == tId)
-                        .Include(m => m.SenderTrainer)
-                        .Include(m => m.ReceiverTrainer)
-                        .OrderBy(m => m.CreatedDate)
-                        .Select(m => new
-                        {
-                            id = m.Id,
-                            content = m.Content,
-                            createdDate = m.CreatedDate,
-                            isRead = m.IsRead,
-                            isSent = true // Admin'in gönderdiği tüm mesajlar
-                        })
-                        .ToListAsync()).Cast<object>().ToList();
-
-                    var trainer = await _context.Trainers
-                        .Include(t => t.User)
-                        .FirstOrDefaultAsync(t => t.Id == tId);
-
-                    if (trainer == null)
-                    {
-                        return Json(new { success = false, message = "Antrenör bulunamadı." });
-                    }
-
-                    otherUser = new { id = trainer.Id, name = trainer.FullName };
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Geçersiz antrenör ID." });
-                }
-            }
-            else
-            {
-                return Json(new { success = false, message = "Geçersiz parametreler." });
-            }
-
-            return Json(new { 
-                success = true, 
-                messages = messages,
-                otherUser = otherUser
-            });
-        }
-
-        /// <summary>
-        /// Trainer'a mesaj gönderir
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMessageToTrainer(int trainerId, string content)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return Json(new { success = false, message = "Mesaj içeriği boş olamaz." });
-            }
-
-            var trainer = await _context.Trainers
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.Id == trainerId);
-
-            if (trainer == null)
-            {
-                return Json(new { success = false, message = "Antrenör bulunamadı." });
-            }
-
-            var message = new Message
-            {
-                Content = content.Trim(),
-                CreatedDate = DateTime.Now,
-                IsRead = false,
-                SenderAdminUserId = currentUser.Id,
-                ReceiverTrainerId = trainerId
-            };
-
-            try
-            {
-                _context.Messages.Add(message);
-                await _context.SaveChangesAsync();
-
-                // Trainer'a bildirim gönder
-                if (trainer.UserId != null)
-                {
-                    var notification = new Notification
-                    {
-                        UserId = trainer.UserId,
-                        Title = "Yeni Mesaj",
-                        Message = $"Admin'den yeni bir mesaj aldınız.",
-                        IsRead = false,
-                        CreatedDate = DateTime.Now,
-                        MessageId = message.Id,
-                        SenderId = null, // Admin gönderiyor, senderId yok
-                        SenderType = "Admin",
-                        ReceiverId = trainerId, // Bildirimi alan trainer ID
-                        ReceiverType = "Trainer"
-                    };
-                    _context.Notifications.Add(notification);
-                    await _context.SaveChangesAsync();
-                }
-
-                return Json(new { success = true, message = "Mesaj başarıyla gönderildi." });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = $"Mesaj gönderilirken hata oluştu: {ex.Message}" });
-            }
-        }
-
-        /// <summary>
-        /// Member'a mesaj gönderir
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMessageToMember(int memberId, string content)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Json(new { success = false, message = "Kullanıcı bulunamadı." });
-            }
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return Json(new { success = false, message = "Mesaj içeriği boş olamaz." });
-            }
-
-            var member = await _context.Members
-                .Include(m => m.User)
-                .FirstOrDefaultAsync(m => m.Id == memberId);
-
-            if (member == null)
-            {
-                return Json(new { success = false, message = "Üye bulunamadı." });
-            }
-
-            var message = new Message
-            {
-                Content = content.Trim(),
-                CreatedDate = DateTime.Now,
-                IsRead = false,
-                SenderAdminUserId = currentUser.Id,
-                ReceiverMemberId = memberId
-            };
-
-            try
-            {
-                _context.Messages.Add(message);
-                await _context.SaveChangesAsync();
-
-                // Member'a bildirim gönder
-                if (member.UserId != null)
-                {
-                    var notification = new Notification
-                    {
-                        UserId = member.UserId,
-                        Title = "Yeni Mesaj",
-                        Message = $"Admin'den yeni bir mesaj aldınız.",
-                        IsRead = false,
-                        CreatedDate = DateTime.Now,
-                        MessageId = message.Id,
-                        SenderId = null, // Admin gönderiyor, senderId yok
-                        SenderType = "Admin",
-                        ReceiverId = memberId, // Bildirimi alan member ID
-                        ReceiverType = "Member"
-                    };
-                    _context.Notifications.Add(notification);
-                    await _context.SaveChangesAsync();
-                }
-
-                return Json(new { success = true, message = "Mesaj başarıyla gönderildi." });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = $"Mesaj gönderilirken hata oluştu: {ex.Message}" });
-            }
-        }
-
-        /// <summary>
-        /// Yeni konuşma başlatmak için aktif antrenörleri JSON olarak döner
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetAvailableTrainers()
-        {
-            var trainers = await _context.Trainers
-                .Where(t => t.IsActive)
-                .OrderBy(t => t.FirstName)
-                .ThenBy(t => t.LastName)
-                .Select(t => new { id = t.Id, name = t.FullName })
-                .ToListAsync();
-
-            return Json(new { success = true, trainers = trainers });
-        }
-
-        /// <summary>
-        /// Okunmamış mesaj sayısını döner (Trainer'lar admin'e mesaj göndermediği için 0 döner)
-        /// </summary>
-        [HttpGet]
-        public IActionResult GetUnreadMessageCount()
-        {
-            // Trainer'lar admin'e mesaj göndermediği için her zaman 0
-            return Json(new { success = true, count = 0 });
-        }
     }
 }
 

@@ -167,7 +167,9 @@ Bu proje aşağıdaki tüm gereksinimleri karşılamaktadır:
 - ✅ Authorization - Doğru şekilde uygulanmış yetkilendirme
 - ✅ API Hizmeti - LINQ sorguları kullanan REST API
 
-## 🤖 OpenAI Entegrasyonu (Opsiyonel)
+## 🤖 AI Entegrasyonu (Opsiyonel)
+
+### OpenAI (Beslenme Planları ve DALL-E)
 
 AI özelliklerini kullanmak için:
 
@@ -177,10 +179,27 @@ AI özelliklerini kullanmak için:
    ```json
    {
      "OpenAI": {
-       "ApiKey": "YOUR_API_KEY"
+       "ApiKey": "YOUR_OPENAI_API_KEY"
      }
    }
    ```
+
+### Replicate / Stable Diffusion (Vücut Transformasyon Simülatörü)
+
+Fotoğraf referanslı transformasyon için:
+
+1. [Replicate](https://replicate.com/) hesabı oluşturun
+2. API token alın
+3. `appsettings.json` dosyasına ekleyin:
+   ```json
+   {
+     "Replicate": {
+       "ApiKey": "YOUR_REPLICATE_API_TOKEN"
+     }
+   }
+   ```
+
+**Not:** Replicate API key yoksa sistem otomatik olarak DALL-E'ye geçer, ancak fotoğraf referansı kullanılamaz.
 
 ## 📝 Migration Yönetimi
 

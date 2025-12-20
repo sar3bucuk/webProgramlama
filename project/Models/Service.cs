@@ -21,7 +21,6 @@ namespace proje.Models
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        // Navigation Properties
         public virtual ICollection<GymService> GymServices { get; set; } = new List<GymService>();
         public virtual ICollection<TrainerService> TrainerServices { get; set; } = new List<TrainerService>();
     }

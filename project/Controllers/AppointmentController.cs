@@ -246,10 +246,8 @@ namespace proje.Controllers
             appointment.Price = gymService.Price;
             ModelState.Remove("MemberId"); 
 
-            // Randevu bitiş saatini hesapla (hem spor salonu hem antrenör kontrollerinde kullanılacak)
             var endTime = appointment.AppointmentTime.Add(TimeSpan.FromMinutes(appointment.Duration));
 
-            // Spor salonunun çalışma günlerini kontrol et
             var gym = await _context.Gyms
                 .Include(g => g.GymServices)
                 .FirstOrDefaultAsync(g => g.Id == member.GymId);
@@ -267,7 +265,6 @@ namespace proje.Controllers
                 }
             }
 
-            // Spor salonunun açılış/kapanış saatlerini kontrol et
             if (gym != null)
             {
                 if (appointment.AppointmentTime < gym.OpeningTime || endTime > gym.ClosingTime)
@@ -370,7 +367,6 @@ namespace proje.Controllers
                     
                     var notifiedUserIds = new HashSet<string>();
 
-                    // Trainer'a bildirim gönder
                     if (trainerForNotification?.User != null && !string.IsNullOrEmpty(trainerForNotification.User.Id))
                     {
                         await CreateNotificationAsync(
@@ -382,7 +378,6 @@ namespace proje.Controllers
                         notifiedUserIds.Add(trainerForNotification.User.Id);
                     }
 
-                    // Admin'lere bildirim gönder (eğer trainer admin değilse)
                     var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
                     foreach (var admin in adminUsers)
                     {
@@ -559,7 +554,6 @@ namespace proje.Controllers
 
                 var notifiedUserIds = new HashSet<string>();
 
-                // Trainer'a bildirim gönder
                 if (appointment.Trainer?.User != null && !string.IsNullOrEmpty(appointment.Trainer.User.Id))
                 {
                     await CreateNotificationAsync(
@@ -571,7 +565,6 @@ namespace proje.Controllers
                     notifiedUserIds.Add(appointment.Trainer.User.Id);
                 }
 
-                // Admin'lere bildirim gönder (eğer trainer admin değilse)
                 var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
                 foreach (var admin in adminUsers)
                 {

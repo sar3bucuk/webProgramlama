@@ -14,10 +14,10 @@ namespace proje.Models
         [Required(ErrorMessage = "İstek tipi gereklidir.")]
         [StringLength(50)]
         [Display(Name = "İstek Tipi")]
-        public string RequestType { get; set; } = string.Empty; // ExercisePlan, DietPlan, BodyTransformation
+        public string RequestType { get; set; } = string.Empty; 
 
         [Display(Name = "Giriş Verileri")]
-        public string? InputData { get; set; } // JSON formatında
+        public string? InputData { get; set; } 
 
         [StringLength(500, ErrorMessage = "Fotoğraf yolu en fazla 500 karakter olabilir.")]
         [Display(Name = "Fotoğraf Yolu")]
@@ -33,7 +33,6 @@ namespace proje.Models
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        // Navigation Properties
         [ForeignKey("MemberId")]
         public virtual Member Member { get; set; } = null!;
     }

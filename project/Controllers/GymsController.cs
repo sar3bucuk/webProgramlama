@@ -86,7 +86,6 @@ namespace proje.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Gym gym)
         {
-            // Çalışma günlerini işle
             var selectedDays = Request.Form["SelectedDays"]
                 .Select(d => int.TryParse(d, out int day) ? day : -1)
                 .Where(d => d >= 0 && d <= 6)
@@ -149,7 +148,6 @@ namespace proje.Controllers
                 return NotFound();
             }
 
-            // Çalışma günlerini işle
             var selectedDays = Request.Form["SelectedDays"]
                 .Select(d => int.TryParse(d, out int day) ? day : -1)
                 .Where(d => d >= 0 && d <= 6)
@@ -207,7 +205,6 @@ namespace proje.Controllers
 
             try
             {
-                // 1. Bu spor salonuna ait GymServices'leri kullanan tüm Appointments'ları sil
                 var gymServiceIds = gym.GymServices.Select(gs => gs.Id).ToList();
                 var appointmentsToDelete = await _context.Appointments
                     .Where(a => gymServiceIds.Contains(a.GymServiceId))
@@ -218,13 +215,11 @@ namespace proje.Controllers
                     _context.Appointments.RemoveRange(appointmentsToDelete);
                 }
 
-                // 2. Bu spor salonuna ait GymServices'leri sil
                 if (gym.GymServices.Any())
                 {
                     _context.GymServices.RemoveRange(gym.GymServices);
                 }
 
-                // 3. Bu spor salonuna ait Trainers'ların GymId'sini null yap
                 var trainers = await _context.Trainers
                     .Where(t => t.GymId == id)
                     .ToListAsync();
@@ -234,7 +229,6 @@ namespace proje.Controllers
                     trainer.GymId = null;
                 }
 
-                // 4. Bu spor salonuna ait Members'ların GymId'sini null yap
                 var members = await _context.Members
                     .Where(m => m.GymId == id)
                     .ToListAsync();
@@ -244,7 +238,6 @@ namespace proje.Controllers
                     member.GymId = null;
                 }
 
-                // 5. Son olarak Gym'i sil
                 _context.Gyms.Remove(gym);
                 await _context.SaveChangesAsync();
 

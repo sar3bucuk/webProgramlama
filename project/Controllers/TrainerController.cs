@@ -172,7 +172,6 @@ namespace proje.Controllers
 
             var today = DateTime.Today;
             
-            // Güncel randevular: Bugün ve gelecekteki, tamamlanmamış, iptal edilmemiş, reddedilmemiş randevular
             var currentAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -189,7 +188,6 @@ namespace proje.Controllers
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 
-            // Geçmiş randevular: Tamamlanmış randevular (bugünden önce veya Completed durumunda)
             var pastAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -204,7 +202,6 @@ namespace proje.Controllers
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 
-            // İptal ve reddedildi randevular
             var cancelledRejectedAppointments = await _context.Appointments
                 .Include(a => a.Member)
                     .ThenInclude(m => m.User)
@@ -317,7 +314,6 @@ namespace proje.Controllers
                             .ThenInclude(gs => gs.Service)
                         .FirstOrDefaultAsync(a => a.Id == id);
 
-                    // Sadece üyeye bildirim gönder (trainer zaten kendi randevularını görüyor)
                     if (appointmentWithDetails?.Member?.User != null && !string.IsNullOrEmpty(appointmentWithDetails.Member.User.Id))
                     {
                         var statusText = status == "Approved" ? "onaylandı" : "reddedildi";

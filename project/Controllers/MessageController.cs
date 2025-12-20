@@ -38,7 +38,6 @@ namespace proje.Controllers
             var isTrainer = User.IsInRole("Trainer");
             var isMember = User.IsInRole("Member");
 
-            // Get conversations for the current user
             var conversations = new List<ConversationViewModel>();
 
             if (isTrainer)
@@ -49,7 +48,6 @@ namespace proje.Controllers
                     return NotFound();
                 }
 
-                // Get all unique members that have sent or received messages from this trainer
                 var memberIds = await _context.Messages
                     .Where(m => (m.ReceiverTrainerId == trainer.Id && m.SenderMemberId != null) ||
                                 (m.SenderTrainerId == trainer.Id && m.ReceiverMemberId != null))
@@ -69,6 +67,8 @@ namespace proje.Controllers
                         var lastMessage = await _context.Messages
                             .Where(m => (m.ReceiverTrainerId == trainer.Id && m.SenderMemberId == memberId) ||
                                         (m.SenderTrainerId == trainer.Id && m.ReceiverMemberId == memberId))
+                            .Include(m => m.SenderMember)
+                            .Include(m => m.SenderTrainer)
                             .OrderByDescending(m => m.CreatedDate)
                             .FirstOrDefaultAsync();
 
@@ -77,6 +77,21 @@ namespace proje.Controllers
                                            m.SenderMemberId == memberId && 
                                            !m.IsRead);
 
+                        var lastMessageSenderName = "";
+                        var isLastMessageFromMe = false;
+                        if (lastMessage != null)
+                        {
+                            if (lastMessage.SenderTrainerId == trainer.Id)
+                            {
+                                lastMessageSenderName = "Siz";
+                                isLastMessageFromMe = true;
+                            }
+                            else if (lastMessage.SenderMemberId != null)
+                            {
+                                lastMessageSenderName = member.FullName;
+                            }
+                        }
+
                         conversations.Add(new ConversationViewModel
                         {
                             OtherUserId = member.Id,
@@ -84,7 +99,9 @@ namespace proje.Controllers
                             OtherUserType = "Member",
                             LastMessage = lastMessage?.Content ?? "",
                             LastMessageDate = lastMessage?.CreatedDate ?? DateTime.MinValue,
-                            UnreadCount = unreadCount
+                            UnreadCount = unreadCount,
+                            LastMessageSenderName = lastMessageSenderName,
+                            IsLastMessageFromMe = isLastMessageFromMe
                         });
                     }
                 }
@@ -97,7 +114,6 @@ namespace proje.Controllers
                     return RedirectToAction("Register", "Account");
                 }
 
-                // Get all unique trainers that have sent or received messages from this member
                 var trainerIds = await _context.Messages
                     .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId != null) ||
                                 (m.ReceiverMemberId == member.Id && m.SenderTrainerId != null))
@@ -117,6 +133,8 @@ namespace proje.Controllers
                         var lastMessage = await _context.Messages
                             .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId == trainerId) ||
                                         (m.ReceiverMemberId == member.Id && m.SenderTrainerId == trainerId))
+                            .Include(m => m.SenderMember)
+                            .Include(m => m.SenderTrainer)
                             .OrderByDescending(m => m.CreatedDate)
                             .FirstOrDefaultAsync();
 
@@ -125,6 +143,21 @@ namespace proje.Controllers
                                            m.SenderTrainerId == trainerId && 
                                            !m.IsRead);
 
+                        var lastMessageSenderName = "";
+                        var isLastMessageFromMe = false;
+                        if (lastMessage != null)
+                        {
+                            if (lastMessage.SenderMemberId == member.Id)
+                            {
+                                lastMessageSenderName = "Siz";
+                                isLastMessageFromMe = true;
+                            }
+                            else if (lastMessage.SenderTrainerId != null)
+                            {
+                                lastMessageSenderName = trainer.FullName;
+                            }
+                        }
+
                         conversations.Add(new ConversationViewModel
                         {
                             OtherUserId = trainer.Id,
@@ -132,13 +165,14 @@ namespace proje.Controllers
                             OtherUserType = "Trainer",
                             LastMessage = lastMessage?.Content ?? "",
                             LastMessageDate = lastMessage?.CreatedDate ?? DateTime.MinValue,
-                            UnreadCount = unreadCount
+                            UnreadCount = unreadCount,
+                            LastMessageSenderName = lastMessageSenderName,
+                            IsLastMessageFromMe = isLastMessageFromMe
                         });
                     }
                 }
             }
 
-            // Get available trainers for members to start new conversations
             if (isMember)
             {
                 ViewBag.Trainers = await _context.Trainers
@@ -148,13 +182,23 @@ namespace proje.Controllers
                     .ToListAsync();
             }
 
-            // Get available members for trainers to start new conversations
             if (isTrainer)
             {
                 ViewBag.Members = await _context.Members
                     .OrderBy(m => m.FirstName)
                     .ThenBy(m => m.LastName)
                     .ToListAsync();
+            }
+
+            if (isTrainer)
+            {
+                var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
+                ViewBag.CurrentUserName = trainer?.FullName ?? currentUser.UserName ?? "";
+            }
+            else if (isMember)
+            {
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+                ViewBag.CurrentUserName = member?.FullName ?? currentUser.UserName ?? "";
             }
 
             return View(conversations.OrderByDescending(c => c.LastMessageDate).ToList());
@@ -199,7 +243,6 @@ namespace proje.Controllers
                     .OrderBy(m => m.CreatedDate)
                     .ToListAsync();
 
-                // Mark messages as read
                 var unreadMessages = messages.Where(m => m.ReceiverTrainerId == trainer.Id && !m.IsRead).ToList();
                 foreach (var msg in unreadMessages)
                 {
@@ -215,7 +258,7 @@ namespace proje.Controllers
                 ViewBag.OtherUser = member;
                 ViewBag.OtherUserType = "Member";
             }
-            else // isMember
+            else 
             {
                 var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
                 if (member == null)
@@ -233,7 +276,6 @@ namespace proje.Controllers
                     .OrderBy(m => m.CreatedDate)
                     .ToListAsync();
 
-                // Mark messages as read
                 var unreadMessages = messages.Where(m => m.ReceiverMemberId == member.Id && !m.IsRead).ToList();
                 foreach (var msg in unreadMessages)
                 {
@@ -314,7 +356,6 @@ namespace proje.Controllers
                 _context.Messages.Add(message);
                 await _context.SaveChangesAsync();
 
-                // Create notification for the receiver
                 var receiverUserId = isTrainer 
                     ? (await _context.Members.FirstOrDefaultAsync(m => m.Id == otherUserId))?.UserId
                     : (await _context.Trainers.FirstOrDefaultAsync(t => t.Id == otherUserId))?.UserId;
@@ -386,7 +427,6 @@ namespace proje.Controllers
 
             var conversations = new List<object>();
 
-            // Member-Trainer mesajları
             var trainerIds = await _context.Messages
                 .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId != null) ||
                             (m.ReceiverMemberId == member.Id && m.SenderTrainerId != null))
@@ -406,6 +446,8 @@ namespace proje.Controllers
                     var lastMessage = await _context.Messages
                         .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId == trainerId) ||
                                     (m.ReceiverMemberId == member.Id && m.SenderTrainerId == trainerId))
+                        .Include(m => m.SenderMember)
+                        .Include(m => m.SenderTrainer)
                         .OrderByDescending(m => m.CreatedDate)
                         .FirstOrDefaultAsync();
 
@@ -414,6 +456,21 @@ namespace proje.Controllers
                                        m.SenderTrainerId == trainerId && 
                                        !m.IsRead);
 
+                    var lastMessageSenderName = "";
+                    var isLastMessageFromMe = false;
+                    if (lastMessage != null)
+                    {
+                        if (lastMessage.SenderMemberId == member.Id)
+                        {
+                            lastMessageSenderName = "Siz";
+                            isLastMessageFromMe = true;
+                        }
+                        else if (lastMessage.SenderTrainerId != null)
+                        {
+                            lastMessageSenderName = trainer.FullName;
+                        }
+                    }
+
                     conversations.Add(new
                     {
                         otherUserId = trainer.Id,
@@ -421,7 +478,9 @@ namespace proje.Controllers
                         otherUserType = "Trainer",
                         lastMessage = lastMessage?.Content ?? "",
                         lastMessageDate = lastMessage?.CreatedDate ?? DateTime.MinValue,
-                        unreadCount = unreadCount
+                        unreadCount = unreadCount,
+                        lastMessageSenderName = lastMessageSenderName,
+                        isLastMessageFromMe = isLastMessageFromMe
                     });
                 }
             }
@@ -430,10 +489,10 @@ namespace proje.Controllers
         }
 
         /// <summary>
-        /// Belirli bir trainer ile konuşmayı JSON olarak döner (Member için)
+        /// Belirli bir trainer veya member ile konuşmayı JSON olarak döner
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetConversationMessages(int trainerId)
+        public async Task<IActionResult> GetConversationMessages(int? trainerId, int? memberId, string? userType)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -441,50 +500,131 @@ namespace proje.Controllers
                 return Json(new { success = false, message = "Kullanıcı bulunamadı." });
             }
 
-            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
-            if (member == null)
-            {
-                return Json(new { success = false, message = "Üye bulunamadı." });
-            }
+            var isTrainer = User.IsInRole("Trainer");
+            var isMember = User.IsInRole("Member");
 
-            var messages = await _context.Messages
-                .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId == trainerId) ||
-                            (m.ReceiverMemberId == member.Id && m.SenderTrainerId == trainerId))
-                .Include(m => m.SenderTrainer)
-                .Include(m => m.ReceiverTrainer)
-                .OrderBy(m => m.CreatedDate)
-                .Select(m => new
+            List<object> messages;
+            object? otherUser = null;
+
+            if (isMember)
+            {
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+                if (member == null)
                 {
-                    id = m.Id,
-                    content = m.Content,
-                    createdDate = m.CreatedDate,
-                    isRead = m.IsRead,
-                    isSent = m.SenderMemberId == member.Id
-                })
-                .ToListAsync();
+                    return Json(new { success = false, message = "Üye bulunamadı." });
+                }
 
-            // Okunmamış mesajları okundu işaretle
-            var unreadMessages = await _context.Messages
-                .Where(m => m.ReceiverMemberId == member.Id && 
-                           m.SenderTrainerId == trainerId && 
-                           !m.IsRead)
-                .ToListAsync();
+                if (trainerId.HasValue)
+                {
+                    var trainer = await _context.Trainers
+                        .Include(t => t.User)
+                        .FirstOrDefaultAsync(t => t.Id == trainerId.Value);
 
-            foreach (var msg in unreadMessages)
-            {
-                msg.IsRead = true;
-                msg.ReadDate = DateTime.Now;
+                    if (trainer == null)
+                    {
+                        return Json(new { success = false, message = "Antrenör bulunamadı." });
+                    }
+
+                    var messagesList = await _context.Messages
+                        .Where(m => (m.SenderMemberId == member.Id && m.ReceiverTrainerId == trainerId.Value) ||
+                                    (m.ReceiverMemberId == member.Id && m.SenderTrainerId == trainerId.Value))
+                        .OrderBy(m => m.CreatedDate)
+                        .Select(m => new
+                        {
+                            id = m.Id,
+                            content = m.Content,
+                            createdDate = m.CreatedDate,
+                            isRead = m.IsRead,
+                            isSent = m.SenderMemberId == member.Id
+                        })
+                        .ToListAsync();
+                    
+                    messages = messagesList.Cast<object>().ToList();
+
+                    var unreadMessages = await _context.Messages
+                        .Where(m => m.ReceiverMemberId == member.Id && 
+                                   m.SenderTrainerId == trainerId.Value && 
+                                   !m.IsRead)
+                        .ToListAsync();
+
+                    foreach (var msg in unreadMessages)
+                    {
+                        msg.IsRead = true;
+                        msg.ReadDate = DateTime.Now;
+                    }
+                    await _context.SaveChangesAsync();
+
+                    otherUser = new { id = trainer.Id, name = trainer.FullName, type = "Trainer" };
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Geçersiz parametreler." });
+                }
             }
-            await _context.SaveChangesAsync();
+            else if (isTrainer)
+            {
+                var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
+                if (trainer == null)
+                {
+                    return Json(new { success = false, message = "Antrenör bulunamadı." });
+                }
 
-            var trainer = await _context.Trainers
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.Id == trainerId);
+                if (memberId.HasValue)
+                {
+                    var member = await _context.Members
+                        .Include(m => m.User)
+                        .FirstOrDefaultAsync(m => m.Id == memberId.Value);
+
+                    if (member == null)
+                    {
+                        return Json(new { success = false, message = "Üye bulunamadı." });
+                    }
+
+                    var messagesList = await _context.Messages
+                        .Where(m => (m.ReceiverTrainerId == trainer.Id && m.SenderMemberId == memberId.Value) ||
+                                    (m.SenderTrainerId == trainer.Id && m.ReceiverMemberId == memberId.Value))
+                        .OrderBy(m => m.CreatedDate)
+                        .Select(m => new
+                        {
+                            id = m.Id,
+                            content = m.Content,
+                            createdDate = m.CreatedDate,
+                            isRead = m.IsRead,
+                            isSent = m.SenderTrainerId == trainer.Id
+                        })
+                        .ToListAsync();
+                    
+                    messages = messagesList.Cast<object>().ToList();
+
+                    var unreadMessages = await _context.Messages
+                        .Where(m => m.ReceiverTrainerId == trainer.Id && 
+                                   m.SenderMemberId == memberId.Value && 
+                                   !m.IsRead)
+                        .ToListAsync();
+
+                    foreach (var msg in unreadMessages)
+                    {
+                        msg.IsRead = true;
+                        msg.ReadDate = DateTime.Now;
+                    }
+                    await _context.SaveChangesAsync();
+
+                    otherUser = new { id = member.Id, name = member.FullName, type = "Member" };
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Geçersiz parametreler." });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = "Yetkisiz erişim." });
+            }
 
             return Json(new { 
                 success = true, 
                 messages = messages,
-                trainer = trainer != null ? new { id = trainer.Id, name = trainer.FullName } : null
+                otherUser = otherUser
             });
         }
 
@@ -540,5 +680,7 @@ namespace proje.Controllers
         public string LastMessage { get; set; } = string.Empty;
         public DateTime LastMessageDate { get; set; }
         public int UnreadCount { get; set; }
+        public string LastMessageSenderName { get; set; } = string.Empty;
+        public bool IsLastMessageFromMe { get; set; }
     }
 }

@@ -102,9 +102,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <strong style="color: #1e293b; cursor: pointer;" 
-                                                    onclick="openMemberChat(@member.Id, '@member.FullName')" 
-                                                    title="Mesajlaşmak için tıklayın">
+                                            <strong style="color: #1e293b;">
                                                 @member.FullName
                                             </strong>
                                         </td>
@@ -120,10 +118,6 @@
                                             <button type="button" class="btn btn-sm btn-outline-info me-1" 
                                                     onclick="showMemberDetails(@member.Id)">
                                                 <i class="bi bi-eye"></i> Detaylar
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-primary me-1" 
-                                                    onclick="openMemberChat(@member.Id, '@member.FullName')">
-                                                <i class="bi bi-chat"></i> Mesaj
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-primary" 
                                                     data-bs-toggle="modal" 
@@ -222,50 +216,6 @@
 </div>
 
 <script>
-    function openMemberChat(memberId, memberName) {
-        // Mesajlar popup'ını aç ve üye ile konuşmayı başlat
-        // jQuery'nin yüklendiğinden emin ol
-        if (typeof $ === 'undefined') {
-            alert('Sayfa henüz tam yüklenmedi. Lütfen birkaç saniye bekleyip tekrar deneyin.');
-            return;
-        }
-        
-        // Popup'ı aç
-        var button = $('#messagesButton');
-        if (button.length === 0) {
-            alert('Mesajlar butonu bulunamadı. Lütfen sayfayı yenileyin.');
-            return;
-        }
-        
-        var wrapper = button.closest('.messages-dropdown-wrapper');
-        var buttonOffset = button.offset();
-        var buttonHeight = button.outerHeight();
-        var buttonRight = $(window).width() - (buttonOffset.left + button.outerWidth());
-        
-        $('#messagesPopup').css({
-            position: 'fixed',
-            top: (buttonOffset.top + buttonHeight + 5) + 'px',
-            right: buttonRight + 'px'
-        });
-        
-        wrapper.addClass('active');
-        $('#messagesPopup').addClass('active');
-        
-        // Önce konuşmaları yükle, sonra üye ile konuşmayı aç
-        if (typeof loadConversations === 'function') {
-            loadConversations();
-        }
-        
-        // Kısa bir gecikme ile konuşmayı aç (konuşmalar yüklendikten sonra)
-        setTimeout(function() {
-            if (typeof loadConversationMessages === 'function') {
-                loadConversationMessages(memberId, memberName, 'Member');
-            } else {
-                alert('Mesajlaşma özelliği yüklenemedi. Lütfen sayfayı yenileyin.');
-            }
-        }, 500);
-    }
-
     function showMemberDetails(memberId) {
         const modal = new bootstrap.Modal(document.getElementById('memberDetailsModal'));
         const contentDiv = document.getElementById('memberDetailsContent');

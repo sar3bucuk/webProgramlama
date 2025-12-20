@@ -24,8 +24,23 @@
             <div class="member-profile-section">
                 <div class="profile-header">
                     <h3>Kişisel Bilgiler</h3>
-                    <a href="@Url.Action("Edit", "Member")" class="btn btn-primary profile-edit-btn">Düzenle</a>
+                    <div class="profile-header-actions">
+                        <a href="@Url.Action("Index", "BodyTransformation")" class="btn btn-outline-success profile-message-btn">
+                            <i class="bi bi-magic"></i> Vücut Simülasyonu
+                        </a>
+                        <a href="@Url.Action("Index", "Message")" class="btn btn-outline-primary profile-message-btn">
+                            <i class="bi bi-chat-dots"></i> Mesajlarım
+                        </a>
+                        <a href="@Url.Action("Edit", "Member")" class="btn btn-primary profile-edit-btn">Düzenle</a>
+                    </div>
                 </div>
+
+                @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                {
+                    <div class="profile-photo-section">
+                        <img src="@Model.PhotoUrl" alt="Profil Fotoğrafı" class="profile-photo" />
+                    </div>
+                }
 
                 <div class="profile-info-grid">
                     <div class="profile-info-item">
@@ -196,10 +211,52 @@
         width: 100%;
     }
 
+    .profile-header-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .profile-message-btn {
+        padding: 0.625rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
     .profile-edit-btn {
         padding: 0.625rem 1.5rem;
         font-size: 1rem;
         font-weight: 600;
         border-radius: 8px;
+    }
+
+    .profile-photo-section {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .profile-photo {
+        max-width: 300px;
+        max-height: 300px;
+        width: auto;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        object-fit: cover;
+    }
+
+    .current-photo-img {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
     }
 </style>

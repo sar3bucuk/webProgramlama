@@ -38,7 +38,7 @@ namespace proje.Models
 
         [StringLength(50, ErrorMessage = "Çalışma günleri en fazla 50 karakter olabilir.")]
         [Display(Name = "Çalışma Günleri")]
-        public string? WorkingDays { get; set; } // Virgülle ayrılmış gün numaraları (0=Pazar, 1=Pazartesi, ..., 6=Cumartesi) Örn: "1,2,3,4,5" = Pazartesi-Cuma
+        public string? WorkingDays { get; set; } 
 
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
@@ -82,7 +82,6 @@ namespace proje.Models
             }
         }
 
-        // Navigation Properties
         public virtual ICollection<GymService> GymServices { get; set; } = new List<GymService>();
         public virtual ICollection<Trainer> Trainers { get; set; } = new List<Trainer>();
     }

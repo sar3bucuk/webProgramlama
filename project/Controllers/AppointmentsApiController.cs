@@ -59,7 +59,6 @@ namespace proje.Controllers
                     return NotFound(new { success = false, message = "Hizmet bulunamadı." });
                 }
 
-                // Spor salonunun çalışma günlerini kontrol et
                 var gym = gymService.Gym;
                 if (gym != null && !string.IsNullOrWhiteSpace(gym.WorkingDays))
                 {
@@ -72,7 +71,6 @@ namespace proje.Controllers
                     }
                 }
 
-                // Spor salonunun açılış/kapanış saatlerini kontrol et
                 int dayOfWeek = (int)appointmentDate.DayOfWeek;
                 var endTime = timeSpan.Add(TimeSpan.FromMinutes(duration));
                 

@@ -49,7 +49,6 @@ namespace proje.Models
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        // Navigation Properties
         [ForeignKey("UserId")]
         public virtual IdentityUser? User { get; set; }
 

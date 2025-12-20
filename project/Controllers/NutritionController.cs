@@ -47,7 +47,6 @@ namespace proje.Controllers
                 return RedirectToAction("Register", "Account");
             }
 
-            // Üyenin mevcut bilgilerini ViewBag'e ekle
             ViewBag.Member = member;
             return View();
         }
@@ -84,13 +83,10 @@ namespace proje.Controllers
 
             try
             {
-                // AI için prompt oluştur
                 var prompt = BuildNutritionPrompt(member, nutritionPlan);
 
-                // AI'dan beslenme programı al
                 var aiResponse = await _openAIService.GenerateNutritionPlanAsync(prompt);
 
-                // Beslenme programını kaydet
                 nutritionPlan.MemberId = member.Id;
                 nutritionPlan.PlanDetails = aiResponse;
                 nutritionPlan.CreatedDate = DateTime.Now;

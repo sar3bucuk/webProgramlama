@@ -1,65 +1,165 @@
 @model List<proje.Controllers.ConversationViewModel>
 @{
-    ViewData["Title"] = "Mesajlarım";
+    ViewData["Title"] = "Mesajlaşma";
     Layout = "_Layout";
+    var currentUserName = ViewBag.CurrentUserName as string ?? "Kullanıcı";
+    var currentUserInitials = "";
+    if (!string.IsNullOrEmpty(currentUserName))
+    {
+        var nameParts = currentUserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (nameParts.Length >= 2)
+        {
+            currentUserInitials = (nameParts[0][0].ToString() + nameParts[1][0].ToString()).ToUpper();
+        }
+        else if (nameParts.Length == 1)
+        {
+            currentUserInitials = nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper();
+        }
+        else
+        {
+            currentUserInitials = "U";
+        }
+    }
+    else
+    {
+        currentUserInitials = "U";
+    }
 }
 
-<div class="auth-page-modern">
-    <div class="auth-stars-background"></div>
-    <div class="auth-container-modern" style="max-width: 1200px;">
-        <div class="auth-card-modern admin-dashboard-card">
-            <div class="auth-header-modern">
-                <h2 class="auth-title-modern">Mesajlarım</h2>
-                <p class="auth-subtitle-modern">Antrenörler ve üyeler ile mesajlaşın</p>
+<div class="messaging-container">
+    <!-- Top Navigation Bar -->
+    <div class="messaging-header">
+        <div class="messaging-header-left">
+            <div class="profile-avatar-container">
+                <div class="profile-avatar">
+                    <span class="profile-initials">@currentUserInitials</span>
+                </div>
+                <span class="online-indicator"></span>
             </div>
-
-            @if (ViewBag.Trainers != null)
-            {
-                <div class="mb-4">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConversationModal">
-                        <i class="bi bi-plus-circle"></i> Yeni Konuşma Başlat
-                    </button>
-                </div>
-            }
-
-            @if (ViewBag.Members != null)
-            {
-                <div class="mb-4">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConversationModal">
-                        <i class="bi bi-plus-circle"></i> Yeni Konuşma Başlat
-                    </button>
-                </div>
-            }
-
-            @if (Model != null && Model.Any())
-            {
-                <div class="conversations-list">
-                    @foreach (var conversation in Model)
-                    {
-                        <a href="@Url.Action("Conversation", "Message", new { otherUserId = conversation.OtherUserId, otherUserType = conversation.OtherUserType })" 
-                           class="conversation-item">
-                            <div class="conversation-info">
-                                <div class="conversation-header">
-                                    <h5>@conversation.OtherUserName</h5>
-                                    @if (conversation.UnreadCount > 0)
-                                    {
-                                        <span class="badge bg-primary">@conversation.UnreadCount</span>
-                                    }
-                                </div>
-                                <p class="conversation-preview">@(conversation.LastMessage.Length > 50 ? conversation.LastMessage.Substring(0, 50) + "..." : conversation.LastMessage)</p>
-                                <small class="text-muted">@conversation.LastMessageDate.ToString("dd.MM.yyyy HH:mm")</small>
-                            </div>
-                        </a>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> Henüz mesajınız bulunmamaktadır.
-                </div>
-            }
+            <h2 class="messaging-title">Mesajlaşma</h2>
         </div>
+        <div class="messaging-header-right">
+            <button type="button" class="icon-btn" title="Daha fazla">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <button type="button" class="icon-btn" data-bs-toggle="modal" data-bs-target="#newConversationModal" title="Yeni mesaj">
+                <i class="bi bi-pencil-square"></i>
+            </button>
+            <button type="button" class="icon-btn" title="Kapat">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="messaging-search-container">
+        <div class="search-input-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" class="search-input" id="messageSearch" placeholder="Mesajlarda ara">
+            <button type="button" class="filter-btn" title="Filtrele">
+                <i class="bi bi-funnel"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="messaging-tabs">
+        <button class="tab-btn active" data-tab="focused" id="focusedTab">
+            Odaklı
+        </button>
+        <button class="tab-btn" data-tab="other" id="otherTab">
+            Diğer
+        </button>
+    </div>
+
+    <!-- Messages List -->
+    <div class="messaging-list-container">
+        @if (Model != null && Model.Any())
+        {
+            <div class="messages-list" id="messagesList">
+                @foreach (var conversation in Model)
+                {
+                    var otherUserInitials = "";
+                    if (!string.IsNullOrEmpty(conversation.OtherUserName))
+                    {
+                        var nameParts = conversation.OtherUserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (nameParts.Length >= 2)
+                        {
+                            otherUserInitials = (nameParts[0][0].ToString() + nameParts[1][0].ToString()).ToUpper();
+                        }
+                        else if (nameParts.Length == 1)
+                        {
+                            otherUserInitials = nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper();
+                        }
+                        else
+                        {
+                            otherUserInitials = "U";
+                        }
+                    }
+                    else
+                    {
+                        otherUserInitials = "U";
+                    }
+                    var messagePreview = "";
+                    if (!string.IsNullOrEmpty(conversation.LastMessage))
+                    {
+                        if (conversation.IsLastMessageFromMe)
+                        {
+                            messagePreview = $"Siz: {conversation.LastMessage}";
+                        }
+                        else
+                        {
+                            messagePreview = $"{conversation.LastMessageSenderName}: {conversation.LastMessage}";
+                        }
+                        if (messagePreview.Length > 60)
+                        {
+                            messagePreview = messagePreview.Substring(0, 60) + "...";
+                        }
+                    }
+                    
+                    var dateDisplay = "";
+                    if (conversation.LastMessageDate != DateTime.MinValue)
+                    {
+                        var now = DateTime.Now;
+                        var diff = now - conversation.LastMessageDate;
+                        
+                        if (diff.TotalDays < 1)
+                        {
+                            dateDisplay = conversation.LastMessageDate.ToString("HH:mm");
+                        }
+                        else
+                        {
+                            var monthNames = new[] { "", "Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara" };
+                            dateDisplay = $"{conversation.LastMessageDate.Day} {monthNames[conversation.LastMessageDate.Month]}";
+                        }
+                    }
+
+                    <a href="@Url.Action("Conversation", "Message", new { otherUserId = conversation.OtherUserId, otherUserType = conversation.OtherUserType })" 
+                       class="message-item">
+                        <div class="message-avatar-container">
+                            <div class="message-avatar">
+                                <span class="message-initials">@otherUserInitials</span>
+                            </div>
+                            <span class="online-indicator-small"></span>
+                        </div>
+                        <div class="message-content-wrapper">
+                            <div class="message-header-row">
+                                <h5 class="message-name">@conversation.OtherUserName</h5>
+                                <span class="message-date">@dateDisplay</span>
+                            </div>
+                            <p class="message-preview">@messagePreview</p>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-messages">
+                <i class="bi bi-chat-dots empty-icon"></i>
+                <p class="empty-text">Henüz mesajınız bulunmamaktadır.</p>
+            </div>
+        }
     </div>
 </div>
 
@@ -117,63 +217,351 @@
 }
 
 <style>
-    .conversations-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-top: 2rem;
+    .messaging-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
     }
 
-    .conversation-item {
-        display: block;
-        padding: 1.5rem;
-        background: #f8f9fa;
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        border-radius: 12px;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.3s ease;
-    }
-
-    .conversation-item:hover {
-        background: #e9ecef;
-        border-color: #3b82f6;
-        transform: translateX(5px);
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .conversation-info {
-        width: 100%;
-    }
-
-    .conversation-header {
+    /* Header */
+    .messaging-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.5rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #ffffff;
     }
 
-    .conversation-header h5 {
+    .messaging-header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .profile-avatar-container {
+        position: relative;
+    }
+
+    .profile-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .profile-initials {
+        line-height: 1;
+    }
+
+    .online-indicator {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background: #10b981;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+    }
+
+    .messaging-title {
         margin: 0;
-        color: var(--text-dark);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .messaging-header-right {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .icon-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-btn:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    /* Search Bar */
+    .messaging-search-container {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .filter-btn {
+        position: absolute;
+        right: 0.75rem;
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    /* Tabs */
+    .messaging-tabs {
+        display: flex;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0 1.5rem;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+        color: #10b981;
         font-weight: 600;
     }
 
-    .conversation-preview {
-        color: #64748b;
-        margin: 0.5rem 0;
-        font-size: 0.9rem;
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #10b981;
     }
 
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
+    .tab-btn:hover:not(.active) {
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    /* Messages List */
+    .messaging-list-container {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .messages-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        border-bottom: 1px solid #f1f5f9;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .message-item:hover {
+        background: #f8fafc;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .message-avatar-container {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .message-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .message-initials {
+        line-height: 1;
+    }
+
+    .online-indicator-small {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 14px;
+        height: 14px;
+        background: #10b981;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+    }
+
+    .message-content-wrapper {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .message-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .message-name {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .message-date {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        white-space: nowrap;
+    }
+
+    .message-preview {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Empty State */
+    .empty-messages {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+
+    .empty-text {
+        color: #94a3b8;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Scrollbar Styling */
+    .messaging-list-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .messaging-list-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .messaging-list-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    .messaging-list-container::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
     }
 </style>
 
 @section Scripts {
     <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tab = this.dataset.tab;
+                // You can implement filtering logic here if needed
+            });
+        });
+
+        // Search functionality
+        document.getElementById('messageSearch')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const messageItems = document.querySelectorAll('.message-item');
+            
+            messageItems.forEach(item => {
+                const name = item.querySelector('.message-name')?.textContent.toLowerCase() || '';
+                const preview = item.querySelector('.message-preview')?.textContent.toLowerCase() || '';
+                
+                if (name.includes(searchTerm) || preview.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Start conversation
         document.getElementById('startConversationBtn')?.addEventListener('click', function() {
             const trainerId = document.getElementById('selectedTrainerId')?.value;
             const memberId = document.getElementById('selectedMemberId')?.value;

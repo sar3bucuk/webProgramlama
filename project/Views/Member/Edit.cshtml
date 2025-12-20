@@ -57,6 +57,22 @@
                 </div>
 
                 <div class="form-group-modern">
+                    <label class="form-label-modern">Profil Fotoğrafı</label>
+                    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                    {
+                        <div class="current-photo mb-3">
+                            <img src="@Model.PhotoUrl" alt="Mevcut Fotoğraf" class="current-photo-img" />
+                        </div>
+                    }
+                    <input type="file" id="photoInput" accept="image/*" class="form-control-modern" />
+                    <small class="text-muted">JPG, PNG veya GIF formatında, maksimum 5MB</small>
+                    <button type="button" id="uploadPhotoBtn" class="btn btn-outline-primary mt-2">
+                        <i class="bi bi-upload"></i> Fotoğraf Yükle
+                    </button>
+                    <div id="photoUploadStatus" class="mt-2"></div>
+                </div>
+
+                <div class="form-group-modern">
                     <label asp-for="Phone" class="form-label-modern">Telefon</label>
                     <input asp-for="Phone" class="form-control-modern" placeholder="Örn: 0264 123 45 67" />
                     <span asp-validation-for="Phone" class="text-danger"></span>
@@ -138,6 +154,43 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('uploadPhotoBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('photoInput');
+            const statusDiv = document.getElementById('photoUploadStatus');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                statusDiv.innerHTML = '<div class="alert alert-warning">Lütfen bir fotoğraf seçin.</div>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('photo', fileInput.files[0]);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            statusDiv.innerHTML = '<div class="alert alert-info">Fotoğraf yükleniyor...</div>';
+
+            fetch('@Url.Action("UploadPhoto", "Member")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                    if (data.photoUrl) {
+                        // Sayfayı yenile veya fotoğrafı göster
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                } else {
+                    statusDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<div class="alert alert-danger">Bir hata oluştu: ' + error + '</div>';
+            });
+        });
+    </script>
 }
 
 <style>

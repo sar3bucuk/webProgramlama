@@ -13,7 +13,7 @@ namespace proje.Models
 
         [StringLength(100)]
         [Display(Name = "Hedef")]
-        public string? Goal { get; set; } // Kilo verme, kilo alma, kas kütlesi artırma, genel sağlık
+        public string? Goal { get; set; } 
 
         [Range(0.01, double.MaxValue, ErrorMessage = "Günlük kalori 0'dan büyük olmalıdır.")]
         [Column(TypeName = "decimal(8,2)")]
@@ -36,11 +36,11 @@ namespace proje.Models
         public decimal? DailyFat { get; set; }
 
         [Display(Name = "Beslenme Programı Detayları")]
-        public string? PlanDetails { get; set; } // AI tarafından oluşturulan detaylı program (JSON veya text)
+        public string? PlanDetails { get; set; } 
 
         [StringLength(1000)]
         [Display(Name = "Özel Notlar")]
-        public string? SpecialNotes { get; set; } // Alerjiler, tercihler, kısıtlamalar
+        public string? SpecialNotes { get; set; } 
 
         [StringLength(500)]
         [Display(Name = "Alerjiler")]
@@ -52,7 +52,7 @@ namespace proje.Models
 
         [StringLength(50)]
         [Display(Name = "Aktivite Seviyesi")]
-        public string? ActivityLevel { get; set; } // Sedanter, hafif aktif, orta aktif, çok aktif
+        public string? ActivityLevel { get; set; }
 
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
@@ -60,7 +60,6 @@ namespace proje.Models
         [Display(Name = "Güncellenme Tarihi")]
         public DateTime? UpdatedDate { get; set; }
 
-        // Navigation Properties
         [ForeignKey("MemberId")]
         public virtual Member Member { get; set; } = null!;
     }

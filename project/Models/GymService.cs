@@ -34,7 +34,6 @@ namespace proje.Models
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        // Navigation Properties
         [ForeignKey("GymId")]
         public virtual Gym Gym { get; set; } = null!;
 

@@ -30,7 +30,6 @@ namespace proje.Models
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        // Navigation Properties
         [ForeignKey("TrainerId")]
         public virtual Trainer Trainer { get; set; } = null!;
 

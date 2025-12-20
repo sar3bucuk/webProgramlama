@@ -52,6 +52,10 @@ namespace proje.Models
         [Display(Name = "Sağlık Durumu")]
         public string? HealthConditions { get; set; }
 
+        [StringLength(500, ErrorMessage = "Fotoğraf URL'i en fazla 500 karakter olabilir.")]
+        [Display(Name = "Profil Fotoğrafı")]
+        public string? PhotoUrl { get; set; }
+
         [Display(Name = "Spor Salonu")]
         public int? GymId { get; set; }
 
@@ -61,7 +65,6 @@ namespace proje.Models
         [Display(Name = "Güncellenme Tarihi")]
         public DateTime? UpdatedDate { get; set; }
 
-        // Navigation Properties
         [ForeignKey("UserId")]
         public virtual Microsoft.AspNetCore.Identity.IdentityUser? User { get; set; }
 

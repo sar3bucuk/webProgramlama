@@ -43,7 +43,7 @@ namespace proje.Models
         [Required(ErrorMessage = "Durum gereklidir.")]
         [StringLength(20)]
         [Display(Name = "Durum")]
-        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, Completed, Cancelled
+        public string Status { get; set; } = "Pending"; 
 
         [StringLength(500, ErrorMessage = "Notlar en fazla 500 karakter olabilir.")]
         [Display(Name = "Notlar")]
@@ -55,7 +55,6 @@ namespace proje.Models
         [Display(Name = "Güncellenme Tarihi")]
         public DateTime? UpdatedDate { get; set; }
 
-        // Navigation Properties
         [ForeignKey("MemberId")]
         public virtual Member Member { get; set; } = null!;
 
