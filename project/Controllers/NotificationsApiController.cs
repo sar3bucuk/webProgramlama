@@ -50,7 +50,12 @@ namespace proje.Controllers
                     message = n.Message,
                     isRead = n.IsRead,
                     createdDate = n.CreatedDate,
-                    appointmentId = n.AppointmentId
+                    appointmentId = n.AppointmentId,
+                    messageId = n.MessageId,
+                    senderId = n.SenderId,
+                    senderType = n.SenderType,
+                    receiverId = n.ReceiverId,
+                    receiverType = n.ReceiverType
                 })
                 .ToListAsync();
 

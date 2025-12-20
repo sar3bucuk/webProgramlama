@@ -4,6 +4,368 @@
     Layout = "_Layout";
 }
 
+@functions {
+    // Öğünleri ve genel bilgileri parse eden helper fonksiyon
+    (List<(string Name, string Content, string Time)> Meals, string GeneralInfo) ParseNutritionPlan(string planDetails)
+    {
+        var meals = new List<(string Name, string Content, string Time)>();
+        var generalInfo = new List<string>();
+        
+        if (string.IsNullOrEmpty(planDetails))
+            return (meals, "");
+        
+        // Öğün isimlerini tanımla (Gece yemeği hariç)
+        var mealKeywords = new[] { 
+            "Kahvaltı", "Sabah", "Breakfast", "Morning",
+            "Öğle", "Öğle Yemeği", "Lunch", "Öğlen",
+            "Akşam", "Akşam Yemeği", "Dinner", "Evening",
+            "Ara Öğün", "Snack", "Atıştırmalık", "İkindi"
+        };
+        
+        // Genel bilgi başlıkları (bunlar öğün değil, genel bilgi)
+        // "Günlük Öğün Planı" başlığından sonra öğünler başlar, bu yüzden onu genel bilgi olarak işaretleme
+        var generalInfoKeywords = new[] {
+            "Porsiyon Miktarları", "Portion", "Tarif", "Recipe", "Makro Besin",
+            "Önemli Notlar", "Important Notes", "Dikkat Edilmesi Gerekenler",
+            "Öneriler", "Recommendations", "Programı Takip",
+            "Kişiselleştirilmiş", "Ad Soyad", "Yaş", "Cinsiyet", "Boy", "Kilo",
+            "Hedef", "Aktivite Seviyesi"
+        };
+        
+        bool foundMealPlanSection = false; // "Günlük Öğün Planı" bölümünü bulduk mu?
+        
+        var lines = planDetails.Split(new[] { "\n", "\r\n" }, StringSplitOptions.None);
+        var currentMeal = "";
+        var currentTime = "";
+        var currentContent = new List<string>();
+        bool inMealSection = false;
+        bool inGeneralSection = false;
+        var currentGeneralSection = new List<string>();
+        
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.Trim();
+            var originalLine = trimmedLine;
+            
+            // Markdown başlıklarını temizle (####, ###, ##, #)
+            if (trimmedLine.StartsWith("####") || trimmedLine.StartsWith("###") || 
+                trimmedLine.StartsWith("##") || trimmedLine.StartsWith("#"))
+            {
+                trimmedLine = trimmedLine.TrimStart('#', ' ').Trim();
+            }
+            
+            // Boş satırları atla
+            if (string.IsNullOrEmpty(trimmedLine))
+            {
+                if (inMealSection && currentContent.Any())
+                {
+                    currentContent.Add("<br>");
+                }
+                else if (inGeneralSection && currentGeneralSection.Any())
+                {
+                    currentGeneralSection.Add("<br>");
+                }
+                continue;
+            }
+            
+            // "Günlük Öğün Planı" bölümünü kontrol et
+            if (trimmedLine.Contains("Günlük Öğün Planı", StringComparison.OrdinalIgnoreCase) ||
+                trimmedLine.Contains("Daily Meal Plan", StringComparison.OrdinalIgnoreCase))
+            {
+                foundMealPlanSection = true;
+                // Bu başlığı atla, öğünler başlayacak
+                continue;
+            }
+            
+            // Genel bilgi başlığı kontrolü
+            bool isGeneralInfo = false;
+            // Eğer "Günlük Öğün Planı" bölümünden sonra numaralı başlık varsa (2., 3., 4., 5., 6.) genel bilgidir
+            if (!foundMealPlanSection || trimmedLine.StartsWith("2.") || trimmedLine.StartsWith("3.") || 
+                trimmedLine.StartsWith("4.") || trimmedLine.StartsWith("5.") || trimmedLine.StartsWith("6.") ||
+                trimmedLine.StartsWith("### 2") || trimmedLine.StartsWith("### 3") || 
+                trimmedLine.StartsWith("### 4") || trimmedLine.StartsWith("### 5") || trimmedLine.StartsWith("### 6"))
+            {
+                foreach (var keyword in generalInfoKeywords)
+                {
+                    if (trimmedLine.Contains(keyword, StringComparison.OrdinalIgnoreCase) && 
+                        !trimmedLine.Contains("Kahvaltı") && !trimmedLine.Contains("Öğle") && 
+                        !trimmedLine.Contains("Akşam") && !trimmedLine.Contains("Ara Öğün"))
+                    {
+                        isGeneralInfo = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Eğer öğün içindeyken genel bilgi başlığı görülürse, öğünü kapat
+            if (inMealSection && isGeneralInfo)
+            {
+                // Önceki öğünü kaydet
+                if (!string.IsNullOrEmpty(currentMeal) && currentContent.Any())
+                {
+                    var content = string.Join("", currentContent).Trim();
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        meals.Add((currentMeal, content, currentTime));
+                    }
+                }
+                currentMeal = "";
+                currentContent.Clear();
+                inMealSection = false;
+            }
+            
+            // Gece yemeğini kontrol et ve filtrele
+            bool isNightMeal = false;
+            if (trimmedLine.Contains("Gece", StringComparison.OrdinalIgnoreCase) || 
+                trimmedLine.Contains("Yatmadan", StringComparison.OrdinalIgnoreCase) || 
+                trimmedLine.Contains("Before Bed", StringComparison.OrdinalIgnoreCase) ||
+                trimmedLine.Contains("Gece Atıştırmalığı", StringComparison.OrdinalIgnoreCase))
+            {
+                isNightMeal = true;
+            }
+            
+            // Öğün başlığı kontrolü
+            bool isMealHeader = false;
+            string mealName = "";
+            string mealTime = "";
+            
+            if (!isNightMeal && !isGeneralInfo)
+            {
+                foreach (var keyword in mealKeywords)
+                {
+                    if (trimmedLine.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    {
+                        isMealHeader = true;
+                        
+                        // Türkçe öğün isimlerini standartlaştır
+                        if (keyword.Contains("Kahvaltı") || keyword.Contains("Sabah") || keyword.Contains("Breakfast") || keyword.Contains("Morning"))
+                            mealName = "Kahvaltı";
+                        else if (keyword.Contains("Öğle") || keyword.Contains("Lunch") || keyword.Contains("Öğlen"))
+                            mealName = "Öğle Yemeği";
+                        else if (keyword.Contains("Akşam") || keyword.Contains("Dinner") || keyword.Contains("Evening"))
+                            mealName = "Akşam Yemeği";
+                        else if (keyword.Contains("Ara") || keyword.Contains("Snack") || keyword.Contains("Atıştırmalık") || keyword.Contains("İkindi"))
+                            mealName = "Ara Öğün";
+                        else
+                            mealName = keyword;
+                        
+                        // Saat bilgisini çıkar
+                        var timeMatch = System.Text.RegularExpressions.Regex.Match(trimmedLine, @"\((\d{1,2}:\d{2})\)");
+                        if (timeMatch.Success)
+                        {
+                            mealTime = timeMatch.Groups[1].Value;
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+            
+            if (isGeneralInfo || isNightMeal)
+            {
+                // Önceki öğünü kaydet
+                if (!string.IsNullOrEmpty(currentMeal) && currentContent.Any())
+                {
+                    var content = string.Join("", currentContent).Trim();
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        meals.Add((currentMeal, content, currentTime));
+                    }
+                }
+                currentMeal = "";
+                currentContent.Clear();
+                inMealSection = false;
+                
+                // Genel bilgi bölümüne ekle
+                inGeneralSection = true;
+                var processedLine = ProcessMarkdownLine(originalLine);
+                currentGeneralSection.Add(processedLine);
+            }
+            else if (isMealHeader)
+            {
+                // Önceki öğünü kaydet
+                if (!string.IsNullOrEmpty(currentMeal) && currentContent.Any())
+                {
+                    var content = string.Join("", currentContent).Trim();
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        meals.Add((currentMeal, content, currentTime));
+                    }
+                }
+                // Yeni öğün başlat
+                currentMeal = mealName;
+                currentTime = mealTime;
+                currentContent.Clear();
+                inMealSection = true;
+                inGeneralSection = false;
+            }
+            else if (inMealSection)
+            {
+                // Öğün içindeyken, eğer genel bilgi başlığı veya genel ifade görülürse öğünü kapat
+                bool isGeneralInMeal = false;
+                
+                // Genel bilgi başlıkları kontrolü
+                foreach (var keyword in generalInfoKeywords)
+                {
+                    if (trimmedLine.Contains(keyword, StringComparison.OrdinalIgnoreCase) && 
+                        (trimmedLine.StartsWith("2.") || trimmedLine.StartsWith("3.") || 
+                         trimmedLine.StartsWith("4.") || trimmedLine.StartsWith("5.") || 
+                         trimmedLine.StartsWith("6.") || trimmedLine.StartsWith("###")))
+                    {
+                        isGeneralInMeal = true;
+                        break;
+                    }
+                }
+                
+                // Öğün içinde sadece yemek listeleri olmalı - genel öneriler filtrelenmeli
+                // Yemek öğesi kontrolü - liste formatında veya yemek içeriği içeriyorsa yemek öğesidir
+                bool isFoodItem = trimmedLine.StartsWith("-") || trimmedLine.StartsWith("*");
+                
+                // Eğer liste formatında değilse, yemek içeriği kontrolü yap
+                if (!isFoodItem)
+                {
+                    // Yemek içeriği kontrolü - hem miktar hem yemek adı içermeli
+                    bool hasQuantity = trimmedLine.Contains("gram") || trimmedLine.Contains("porsiyon") ||
+                                      trimmedLine.Contains("su bardağı") || trimmedLine.Contains("tatlı kaşığı") ||
+                                      trimmedLine.Contains("kaşık") || trimmedLine.Contains("dilim") ||
+                                      trimmedLine.Contains("adet") || trimmedLine.Contains("kâse");
+                    
+                    bool hasFoodName = trimmedLine.Contains("yumurta") || trimmedLine.Contains("ekmek") ||
+                                      trimmedLine.Contains("tavuk") || trimmedLine.Contains("sebze") ||
+                                      trimmedLine.Contains("meyve") || trimmedLine.Contains("yoğurt") ||
+                                      trimmedLine.Contains("pilav") || trimmedLine.Contains("salata") ||
+                                      trimmedLine.Contains("badem") || trimmedLine.Contains("muz") ||
+                                      trimmedLine.Contains("elma") || trimmedLine.Contains("armut") ||
+                                      trimmedLine.Contains("brokoli") || trimmedLine.Contains("karnabahar") ||
+                                      trimmedLine.Contains("enginar") || trimmedLine.Contains("kabak") ||
+                                      trimmedLine.Contains("ızgara") || trimmedLine.Contains("haşlanmış") ||
+                                      trimmedLine.Contains("zeytinyağlı") || trimmedLine.Contains("bulgur") ||
+                                      trimmedLine.Contains("kinoa") || trimmedLine.Contains("yulaf") ||
+                                      trimmedLine.Contains("havuç") || trimmedLine.Contains("marin") ||
+                                      trimmedLine.Contains("baharat") || trimmedLine.Contains("limon");
+                    
+                    isFoodItem = hasQuantity && hasFoodName;
+                }
+                
+                // Genel ifadeler kontrolü (uyarılar, dikkat edilmesi gerekenler vb.)
+                // Su tüketimi hariç - su tüketimi kısa not olarak kalabilir
+                var generalPhrases = new[] {
+                    "Bu program", "hedeflerinize ulaşmanızda", "doktora veya diyetisyene danışmanız",
+                    "Başarılar dilerim", "sağlığınızı dikkate almayı", "herhangi bir sağlık sorununuz",
+                    "Öğünlerde Önerilen", "Porsiyon Miktarları", "Türk Mutfağına Uygun",
+                    "Makro Besin Dağılımı", "Önemli Notlar", "Dikkat Edilmesi Gerekenler",
+                    "özen gösterin", "yaparak", "yapmaya", "uzak durun", "tercih edin", "deneyin",
+                    "sıkılmazsınız", "artırın", "ayarlayın", "koruyun",
+                    "egzersiz", "spor", "yürüyüş", "aktif", "metabolizma", "hızlandıracaktır",
+                    "atlamayın", "çeşitli", "taze", "mevsiminde", "abur cubur", "işlenmiş",
+                    "psikolojik", "motivasyon", "destek", "danışmanız", "önemlidir"
+                };
+                
+                // Su tüketimi ile ilgili kısa notlar kabul edilebilir, ama uzun cümleler değil
+                bool isWaterNote = trimmedLine.Contains("su", StringComparison.OrdinalIgnoreCase) && 
+                                   (trimmedLine.Contains("tüketim") || trimmedLine.Contains("içmek") || 
+                                    trimmedLine.Contains("dikkat") || trimmedLine.Contains("miktar")) &&
+                                   trimmedLine.Length < 100; // Kısa notlar (100 karakterden az)
+                
+                // Eğer yemek öğesi değilse ve genel ifade içeriyorsa, genel bilgi olarak işaretle
+                // Su tüketimi kısa notları hariç (100 karakterden az)
+                if (!isFoodItem && !isWaterNote)
+                {
+                    foreach (var phrase in generalPhrases)
+                    {
+                        if (trimmedLine.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                        {
+                            isGeneralInMeal = true;
+                            break;
+                        }
+                    }
+                    
+                    // Eğer satır uzunsa ve yemek listesi formatında değilse, genel bilgi olabilir
+                    if (!isGeneralInMeal && trimmedLine.Length > 80 && 
+                        !trimmedLine.Contains(":") && !trimmedLine.Contains("(") &&
+                        !trimmedLine.Contains("gram") && !trimmedLine.Contains("porsiyon") &&
+                        !trimmedLine.StartsWith("-") && !trimmedLine.StartsWith("*"))
+                    {
+                        isGeneralInMeal = true;
+                    }
+                }
+                
+                if (isGeneralInMeal)
+                {
+                    // Öğünü kapat ve genel bilgiye geç
+                    if (!string.IsNullOrEmpty(currentMeal) && currentContent.Any())
+                    {
+                        var content = string.Join("", currentContent).Trim();
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            meals.Add((currentMeal, content, currentTime));
+                        }
+                    }
+                    currentMeal = "";
+                    currentContent.Clear();
+                    inMealSection = false;
+                    inGeneralSection = true;
+                    var processedLine = ProcessMarkdownLine(originalLine);
+                    currentGeneralSection.Add(processedLine);
+                }
+                else
+                {
+                    // Markdown listelerini ve formatlamayı işle
+                    var processedLine = ProcessMarkdownLine(trimmedLine);
+                    currentContent.Add(processedLine);
+                }
+            }
+            else if (inGeneralSection)
+            {
+                // Genel bilgi bölümüne ekle
+                var processedLine = ProcessMarkdownLine(trimmedLine);
+                currentGeneralSection.Add(processedLine);
+            }
+        }
+        
+        // Son öğünü kaydet
+        if (!string.IsNullOrEmpty(currentMeal) && currentContent.Any())
+        {
+            var content = string.Join("", currentContent).Trim();
+            if (!string.IsNullOrEmpty(content))
+            {
+                meals.Add((currentMeal, content, currentTime));
+            }
+        }
+        
+        // Genel bilgileri birleştir
+        var generalInfoText = string.Join("", currentGeneralSection).Trim();
+        
+        return (meals, generalInfoText);
+    }
+    
+    // Markdown satırını HTML'e çevir
+    string ProcessMarkdownLine(string line)
+    {
+        if (string.IsNullOrEmpty(line))
+            return "<br>";
+        
+        // Markdown bold (**text**)
+        line = System.Text.RegularExpressions.Regex.Replace(line, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        
+        // Markdown list item (- veya *)
+        if (line.StartsWith("- ") || line.StartsWith("* "))
+        {
+            line = line.Substring(2);
+            return "<div class='meal-item'><i class='bi bi-check-circle-fill text-success me-2'></i>" + line + "</div>";
+        }
+        
+        // Numaralı liste
+        var numberedMatch = System.Text.RegularExpressions.Regex.Match(line, @"^\d+\.\s+(.+)$");
+        if (numberedMatch.Success)
+        {
+            return "<div class='meal-item'><span class='meal-number'>" + numberedMatch.Groups[0].Value.Split('.')[0] + ".</span> " + numberedMatch.Groups[1].Value + "</div>";
+        }
+        
+        return "<div class='meal-item'>" + line + "</div>";
+    }
+}
+
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-12">
@@ -80,13 +442,152 @@
 
                     <div class="mt-4">
                         <h5>📝 Detaylı Beslenme Programı</h5>
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <div style="white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8;">
-                                    @Html.Raw(Model.PlanDetails?.Replace("\n", "<br>"))
+                        @if (!string.IsNullOrEmpty(Model.PlanDetails))
+                        {
+                            var result = ParseNutritionPlan(Model.PlanDetails);
+                            var meals = result.Meals;
+                            var generalInfo = result.GeneralInfo;
+                            
+                            // Genel bilgileri en üste göster
+                            @if (!string.IsNullOrEmpty(generalInfo))
+                            {
+                                <div class="card mb-4 general-info-card shadow-sm">
+                                    <div class="card-header general-info-header">
+                                        <h5 class="mb-0">ℹ️ Genel Bilgiler ve Öneriler</h5>
+                                    </div>
+                                    <div class="card-body general-info-body">
+                                        <div class="general-info-content">
+                                            @Html.Raw(generalInfo)
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            // Öğünleri göster
+                            @if (meals.Any())
+                            {
+                                // Öğün sıralaması - sadece belirtilen öğünler
+                                var mealOrder = new Dictionary<string, int>
+                                {
+                                    { "Kahvaltı", 1 },
+                                    { "Ara Öğün", 2 },
+                                    { "Öğle Yemeği", 3 },
+                                    { "Akşam Yemeği", 4 }
+                                };
+                                
+                                // Öğünleri sırala
+                                // Ara öğünler için birden fazla olabilir, diğer öğünler için sadece bir tane
+                                var processedMeals = new List<(string Name, string Content, string Time)>();
+                                
+                                // Ara öğünler hariç, aynı öğün tipinden sadece ilkini al
+                                var nonSnackMeals = meals
+                                    .Where(m => mealOrder.ContainsKey(m.Name) && m.Name != "Ara Öğün")
+                                    .GroupBy(m => m.Name)
+                                    .Select(g => g.OrderBy(m => m.Time ?? "").First())
+                                    .ToList();
+                                
+                                // Ara öğünlerin hepsini al (saat sırasına göre)
+                                var snackMeals = meals
+                                    .Where(m => m.Name == "Ara Öğün")
+                                    .OrderBy(m => m.Time ?? "")
+                                    .ToList();
+                                
+                                // Tüm öğünleri birleştir ve sırala
+                                var allMeals = nonSnackMeals.Concat(snackMeals).ToList();
+                                
+                                // Öğün sırasına göre sırala: Kahvaltı -> Ara Öğün(ler) -> Öğle -> Ara Öğün(ler) -> Akşam
+                                var orderedMeals = new List<(string Name, string Content, string Time)>();
+                                
+                                // Kahvaltı
+                                var breakfast = allMeals.FirstOrDefault(m => m.Name == "Kahvaltı");
+                                if (!string.IsNullOrEmpty(breakfast.Name)) orderedMeals.Add(breakfast);
+                                
+                                // İlk ara öğünler (öğle yemeğinden önce)
+                                var lunchMeal = allMeals.FirstOrDefault(m => m.Name == "Öğle Yemeği");
+                                var lunchTime = lunchMeal.Time ?? "";
+                                var firstSnacks = snackMeals.Where(s => {
+                                    var snackTime = s.Time ?? "";
+                                    return string.IsNullOrEmpty(lunchTime) || string.Compare(snackTime, lunchTime) < 0;
+                                }).ToList();
+                                orderedMeals.AddRange(firstSnacks);
+                                
+                                // Öğle Yemeği
+                                if (!string.IsNullOrEmpty(lunchMeal.Name)) orderedMeals.Add(lunchMeal);
+                                
+                                // İkinci ara öğünler (öğle yemeğinden sonra, akşam yemeğinden önce)
+                                var dinnerMeal = allMeals.FirstOrDefault(m => m.Name == "Akşam Yemeği");
+                                var dinnerTime = dinnerMeal.Time ?? "";
+                                var secondSnacks = snackMeals.Where(s => {
+                                    var snackTime = s.Time ?? "";
+                                    bool afterLunch = string.IsNullOrEmpty(lunchTime) || string.Compare(snackTime, lunchTime) > 0;
+                                    bool beforeDinner = string.IsNullOrEmpty(dinnerTime) || string.Compare(snackTime, dinnerTime) < 0;
+                                    return afterLunch && beforeDinner;
+                                }).ToList();
+                                orderedMeals.AddRange(secondSnacks);
+                                
+                                // Akşam Yemeği
+                                if (!string.IsNullOrEmpty(dinnerMeal.Name)) orderedMeals.Add(dinnerMeal);
+                                
+                                @foreach (var meal in orderedMeals)
+                                {
+                                    <div class="card mb-4 meal-card shadow-sm">
+                                        <div class="card-header meal-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    @switch (meal.Name)
+                                                    {
+                                                        case "Kahvaltı":
+                                                            <span>🌅 @meal.Name</span>
+                                                            break;
+                                                        case "Ara Öğün":
+                                                            <span>🍎 @meal.Name</span>
+                                                            break;
+                                                        case "Öğle Yemeği":
+                                                            <span>☀️ @meal.Name</span>
+                                                            break;
+                                                        case "Akşam Yemeği":
+                                                            <span>🌙 @meal.Name</span>
+                                                            break;
+                                                        default:
+                                                            <span>🍽️ @meal.Name</span>
+                                                            break;
+                                                    }
+                                                </h5>
+                                                @if (!string.IsNullOrEmpty(meal.Time))
+                                                {
+                                                    <span class="meal-time badge bg-light text-dark">
+                                                        <i class="bi bi-clock"></i> @meal.Time
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="card-body meal-body">
+                                            <div class="meal-content-wrapper">
+                                                @Html.Raw(meal.Content)
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else if (string.IsNullOrEmpty(generalInfo))
+                            {
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div style="white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8;">
+                                            @Html.Raw(Model.PlanDetails?.Replace("\n", "<br>"))
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p class="text-muted">Henüz detaylı beslenme programı eklenmemiş.</p>
                                 </div>
                             </div>
-                        </div>
+                        }
                     </div>
 
                     <div class="mt-4">
@@ -166,6 +667,119 @@
     table th {
         background-color: #f8f9fa;
         width: 40%;
+    }
+    
+    .meal-card {
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .meal-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .meal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .meal-header h5 {
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    
+    .meal-time {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+    }
+    
+    .meal-body {
+        padding: 1.5rem;
+        background-color: #ffffff;
+    }
+    
+    .meal-content-wrapper {
+        line-height: 1.8;
+        font-size: 1rem;
+        color: #333;
+    }
+    
+    .meal-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .meal-item:last-child {
+        border-bottom: none;
+    }
+    
+    .meal-item i {
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+    
+    .meal-item .meal-number {
+        font-weight: 600;
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    
+    .meal-content-wrapper strong {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .meal-content-wrapper br {
+        line-height: 1.5;
+    }
+    
+    .general-info-card {
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .general-info-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .general-info-header h5 {
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    
+    .general-info-body {
+        padding: 1.5rem;
+        background-color: #ffffff;
+    }
+    
+    .general-info-content {
+        line-height: 1.8;
+        font-size: 1rem;
+        color: #333;
+    }
+    
+    .general-info-content .meal-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .general-info-content .meal-item:last-child {
+        border-bottom: none;
     }
 </style>
 

@@ -321,13 +321,38 @@ namespace proje.Controllers
 
                 if (!string.IsNullOrEmpty(receiverUserId))
                 {
+                    int? senderId = null;
+                    string? senderType = null;
+                    
+                    if (isTrainer)
+                    {
+                        var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == currentUser.Id);
+                        if (trainer != null)
+                        {
+                            senderId = trainer.Id;
+                            senderType = "Trainer";
+                        }
+                    }
+                    else if (isMember)
+                    {
+                        var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == currentUser.Id);
+                        if (member != null)
+                        {
+                            senderId = member.Id;
+                            senderType = "Member";
+                        }
+                    }
+                    
                     var notification = new Notification
                     {
                         UserId = receiverUserId,
                         Title = "Yeni Mesaj",
                         Message = $"Size yeni bir mesaj gönderildi.",
                         IsRead = false,
-                        CreatedDate = DateTime.Now
+                        CreatedDate = DateTime.Now,
+                        MessageId = message.Id,
+                        SenderId = senderId,
+                        SenderType = senderType
                     };
                     _context.Notifications.Add(notification);
                     await _context.SaveChangesAsync();

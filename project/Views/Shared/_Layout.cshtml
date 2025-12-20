@@ -158,10 +158,10 @@
         @RenderBody()
     </main>
 
-    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || (!User.IsInRole("Trainer"))))
-    {
-        <!-- Mesajlar Popup (Bildirimler gibi) -->
-        <div id="messagesPopup" class="messages-popup-overlay">
+        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || (!User.IsInRole("Trainer"))))
+        {
+            <!-- Mesajlar Popup (Bildirimler gibi) -->
+            <div id="messagesPopup" class="messages-popup-overlay" data-is-admin="@(User.IsInRole("Admin").ToString().ToLower())">
             <div class="messages-popup-container">
                 <div class="messages-popup-header">
                     <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
@@ -275,7 +275,7 @@
                                              date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                                 
                                 html += '<li class="notification-item ' + (notif.isRead ? '' : 'unread') + '">';
-                                html += '<a class="dropdown-item" href="#" data-notification-id="' + notif.id + '" data-appointment-id="' + (notif.appointmentId || '') + '" data-user-role="' + userRole + '">';
+                                html += '<a class="dropdown-item" href="#" data-notification-id="' + notif.id + '" data-appointment-id="' + (notif.appointmentId || '') + '" data-message-id="' + (notif.messageId || '') + '" data-sender-id="' + (notif.senderId || '') + '" data-sender-type="' + (notif.senderType || '') + '" data-receiver-id="' + (notif.receiverId || '') + '" data-receiver-type="' + (notif.receiverType || '') + '" data-user-role="' + userRole + '">';
                                 html += '<div class="d-flex justify-content-between align-items-start">';
                                 html += '<div class="flex-grow-1">';
                                 html += '<div class="d-flex align-items-center mb-1">' + readIcon + '<span class="' + readClass + '">' + notif.title + '</span></div>';
@@ -297,7 +297,13 @@
                     e.preventDefault();
                     var notificationId = $(this).data('notification-id');
                     var appointmentId = $(this).data('appointment-id');
+                    var messageId = $(this).data('message-id');
+                    var senderId = $(this).data('sender-id');
+                    var senderType = $(this).data('sender-type');
+                    var receiverId = $(this).data('receiver-id');
+                    var receiverType = $(this).data('receiver-type');
                     var userRole = $(this).data('user-role');
+                    var notificationTitle = $(this).find('span').first().text().trim();
                     
                     if (notificationId) {
                         $.post('/api/NotificationsApi/mark-read/' + notificationId, {
@@ -306,20 +312,95 @@
                             if (data.success) {
                                 loadNotificationCount();
                                 
-                                var redirectUrl = '';
-                                if (userRole === 'Admin') {
-                                    redirectUrl = '@Url.Action("Appointments", "Admin")';
-                                } else if (userRole === 'Trainer') {
-                                    redirectUrl = '@Url.Action("Appointments", "Trainer")';
+                                // Mesaj bildirimi ise mesajlar popup'ını aç
+                                if (notificationTitle === 'Yeni Mesaj' && (messageId || senderId || receiverId)) {
+                                    // Mesajlar popup'ını aç
+                                    var button = $('#messagesButton');
+                                    if (button.length > 0) {
+                                        var wrapper = button.closest('.messages-dropdown-wrapper');
+                                        var buttonOffset = button.offset();
+                                        var buttonHeight = button.outerHeight();
+                                        var buttonRight = $(window).width() - (buttonOffset.left + button.outerWidth());
+                                        
+                                        $('#messagesPopup').css({
+                                            position: 'fixed',
+                                            top: (buttonOffset.top + buttonHeight + 5) + 'px',
+                                            right: buttonRight + 'px'
+                                        });
+                                        
+                                        wrapper.addClass('active');
+                                        $('#messagesPopup').addClass('active');
+                                        
+                                        // Konuşmaları yükle
+                                        if (typeof loadConversations === 'function') {
+                                            loadConversations();
+                                        }
+                                        
+                                        // Hangi kullanıcı ile konuşmayı açacağımızı belirle
+                                        var targetId = null;
+                                        var targetType = null;
+                                        
+                                        // Admin ise, receiverId'yi kullan (bildirimi alan trainer/member)
+                                        if (isAdmin && receiverId && receiverType) {
+                                            targetId = receiverId;
+                                            targetType = receiverType;
+                                        }
+                                        // Diğer kullanıcılar için senderId'yi kullan (mesajı gönderen trainer/member)
+                                        else if (senderId && senderType) {
+                                            targetId = senderId;
+                                            targetType = senderType;
+                                        }
+                                        
+                                        // Eğer targetId varsa, o kullanıcı ile konuşmayı aç
+                                        if (targetId && targetType && typeof loadConversationMessages === 'function') {
+                                            setTimeout(function() {
+                                                // TargetId'den kullanıcı adını bulmak için API çağrısı yap
+                                                var url = isAdmin 
+                                                    ? '@Url.Action("GetConversationMessages", "Admin")'
+                                                    : '@Url.Action("GetConversationMessages", "Message")';
+                                                
+                                                var params = {};
+                                                if (targetType === 'Trainer') {
+                                                    params.trainerId = targetId;
+                                                    params.userType = 'Trainer';
+                                                } else if (targetType === 'Member') {
+                                                    params.memberId = targetId;
+                                                    params.userType = 'Member';
+                                                }
+                                                
+                                                $.get(url, params, function(data) {
+                                                    if (data.success && data.otherUser) {
+                                                        loadConversationMessages(targetId, data.otherUser.name, targetType);
+                                                    } else {
+                                                        // Konuşma yoksa, sadece konuşmaları göster
+                                                        $('#messagesConversationList').show();
+                                                        $('#messagesDetailView').hide();
+                                                    }
+                                                });
+                                            }, 500);
+                                        } else {
+                                            // TargetId yoksa, sadece konuşmaları göster
+                                            $('#messagesConversationList').show();
+                                            $('#messagesDetailView').hide();
+                                        }
+                                    }
                                 } else {
-                                    redirectUrl = '@Url.Action("MyAppointments", "Appointment")';
+                                    // Randevu bildirimi ise randevu sayfasına yönlendir
+                                    var redirectUrl = '';
+                                    if (userRole === 'Admin') {
+                                        redirectUrl = '@Url.Action("Appointments", "Admin")';
+                                    } else if (userRole === 'Trainer') {
+                                        redirectUrl = '@Url.Action("Appointments", "Trainer")';
+                                    } else {
+                                        redirectUrl = '@Url.Action("MyAppointments", "Appointment")';
+                                    }
+                                    
+                                    if (appointmentId) {
+                                        redirectUrl += '?highlight=' + appointmentId;
+                                    }
+                                    
+                                    window.location.href = redirectUrl;
                                 }
-                                
-                                if (appointmentId) {
-                                    redirectUrl += '?highlight=' + appointmentId;
-                                }
-                                
-                                window.location.href = redirectUrl;
                             }
                         });
                     }
@@ -349,10 +430,12 @@
         </script>
         @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || (!User.IsInRole("Trainer"))))
         {
-            <script>
+            <script type="text/javascript">
                 let currentTrainerId = null;
+                let currentMemberId = null;
+                let currentUserType = null;
                 let messageRefreshInterval = null;
-                let isAdmin = @Html.Raw(User.IsInRole("Admin") ? "true" : "false");
+                var isAdmin = $('#messagesPopup').data('is-admin') === 'true';
 
                 function loadMessageCount() {
                     var url = isAdmin 
@@ -380,7 +463,11 @@
                                              date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                                 var preview = conv.lastMessage.length > 50 ? conv.lastMessage.substring(0, 50) + '...' : conv.lastMessage;
                                 
-                                html += '<div class="conversation-item" data-trainer-id="' + conv.otherUserId + '" data-trainer-name="' + conv.otherUserName.replace(/'/g, "&#39;") + '">';
+                                var dataAttr = conv.otherUserType === 'Member' 
+                                    ? 'data-member-id="' + conv.otherUserId + '" data-member-name="' + conv.otherUserName.replace(/'/g, "&#39;") + '"'
+                                    : 'data-trainer-id="' + conv.otherUserId + '" data-trainer-name="' + conv.otherUserName.replace(/'/g, "&#39;") + '"';
+                                
+                                html += '<div class="conversation-item" ' + dataAttr + ' data-user-type="' + conv.otherUserType + '">';
                                 html += '<div class="d-flex align-items-start">';
                                 html += '<div class="flex-grow-1">';
                                 html += '<div class="d-flex align-items-center mb-1">';
@@ -402,10 +489,17 @@
                     });
                 }
 
-                function loadConversationMessages(trainerId, trainerName) {
+                function loadConversationMessages(userId, userName, userType) {
                     // Özel chat görünümünü aç
-                    currentTrainerId = trainerId;
-                    $('#conversationTrainerName').text(trainerName || 'Yükleniyor...');
+                    if (userType === 'Member') {
+                        currentMemberId = userId;
+                        currentTrainerId = null;
+                    } else {
+                        currentTrainerId = userId;
+                        currentMemberId = null;
+                    }
+                    currentUserType = userType || 'Trainer';
+                    $('#conversationTrainerName').text(userName || 'Yükleniyor...');
                     
                     // Konuşma listesini gizle, chat detay görünümünü göster
                     $('#messagesConversationList').hide();
@@ -414,37 +508,58 @@
                     var url = isAdmin 
                         ? '@Url.Action("GetConversationMessages", "Admin")'
                         : '@Url.Action("GetConversationMessages", "Message")';
-                    $.get(url, { trainerId: trainerId }, function(data) {
+                    
+                    var params = {};
+                    if (currentUserType === 'Member' && currentMemberId) {
+                        params.memberId = currentMemberId;
+                        params.userType = 'Member';
+                    } else if (currentTrainerId) {
+                        params.trainerId = currentTrainerId;
+                        params.userType = 'Trainer';
+                    }
+                    
+                    $.get(url, params, function(data) {
                         if (data.success) {
                             var html = '';
-                            data.messages.forEach(function(msg) {
-                                var date = new Date(msg.createdDate);
-                                var dateStr = date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
-                                             date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                                
-                                var itemClass = msg.isSent ? 'sent' : 'received';
-                                
-                                html += '<div class="message-item ' + itemClass + '">';
-                                html += '<div class="message-bubble">';
-                                html += '<p>' + msg.content + '</p>';
-                                html += '<small>' + dateStr + '</small>';
-                                html += '</div>';
-                                html += '</div>';
-                            });
+                            if (data.messages && data.messages.length > 0) {
+                                data.messages.forEach(function(msg) {
+                                    var date = new Date(msg.createdDate);
+                                    var dateStr = date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+                                                 date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                                    
+                                    var itemClass = msg.isSent ? 'sent' : 'received';
+                                    
+                                    html += '<div class="message-item ' + itemClass + '">';
+                                    html += '<div class="message-bubble">';
+                                    html += '<p>' + msg.content + '</p>';
+                                    html += '<small>' + dateStr + '</small>';
+                                    html += '</div>';
+                                    html += '</div>';
+                                });
+                            } else {
+                                html = '<div class="text-center text-muted p-4"><p class="mb-0">Henüz mesaj yok. İlk mesajınızı gönderin!</p></div>';
+                            }
                             
                             $('#messagesContainer').html(html);
-                            $('#messagesContainer').scrollTop($('#messagesContainer')[0].scrollHeight);
+                            if ($('#messagesContainer')[0].scrollHeight > 0) {
+                                $('#messagesContainer').scrollTop($('#messagesContainer')[0].scrollHeight);
+                            }
                             
                             // Auto-refresh messages
                             if (messageRefreshInterval) {
                                 clearInterval(messageRefreshInterval);
                             }
                             messageRefreshInterval = setInterval(function() {
-                                if (currentTrainerId && $('#messagesDetailView').is(':visible')) {
-                                    loadConversationMessages(currentTrainerId, trainerName);
+                                if ((currentTrainerId || currentMemberId) && $('#messagesDetailView').is(':visible')) {
+                                    loadConversationMessages(currentTrainerId || currentMemberId, userName, currentUserType);
                                 }
                             }, 5000);
+                        } else {
+                            $('#messagesContainer').html('<div class="alert alert-danger">Mesajlar yüklenirken bir hata oluştu: ' + (data.message || 'Bilinmeyen hata') + '</div>');
                         }
+                    }).fail(function(xhr, status, error) {
+                        console.error('Error loading messages:', error);
+                        $('#messagesContainer').html('<div class="alert alert-danger">Mesajlar yüklenirken bir hata oluştu.</div>');
                     });
                 }
 
@@ -454,8 +569,16 @@
                     e.stopPropagation();
                     
                     var $item = $(this);
-                    var trainerId = $item.data('trainer-id');
-                    var trainerName = $item.data('trainer-name') || $item.find('strong').text();
+                    var userType = $item.data('user-type') || 'Trainer';
+                    var userId, userName;
+                    
+                    if (userType === 'Member') {
+                        userId = $item.data('member-id');
+                        userName = $item.data('member-name') || $item.find('strong').text();
+                    } else {
+                        userId = $item.data('trainer-id');
+                        userName = $item.data('trainer-name') || $item.find('strong').text();
+                    }
                     
                     // Popup'ın açık olduğundan emin ol
                     if (!$('#messagesPopup').hasClass('active')) {
@@ -476,7 +599,7 @@
                     }
                     
                     // Özel chat görünümünü aç
-                    loadConversationMessages(trainerId, trainerName);
+                    loadConversationMessages(userId, userName, userType);
                 });
 
                 // Mesajlar popup aç/kapa - Butonun hemen altında
@@ -522,6 +645,8 @@
                             $('#messagesDetailView').hide();
                             $('#messagesConversationList').show();
                             currentTrainerId = null;
+                            currentMemberId = null;
+                            currentUserType = null;
                             if (messageRefreshInterval) {
                                 clearInterval(messageRefreshInterval);
                             }
@@ -552,6 +677,8 @@
                     $('#messagesDetailView').hide();
                     $('#messagesConversationList').show();
                     currentTrainerId = null;
+                    currentMemberId = null;
+                    currentUserType = null;
                     if (messageRefreshInterval) {
                         clearInterval(messageRefreshInterval);
                     }
@@ -561,7 +688,7 @@
 
                 $('#sendMessageBtn').click(function() {
                     var content = $('#messageInput').val().trim();
-                    if (!content || !currentTrainerId) {
+                    if (!content || (!currentTrainerId && !currentMemberId)) {
                         return;
                     }
 
@@ -569,26 +696,39 @@
                     btn.prop('disabled', true);
                     btn.html('<span class="spinner-border spinner-border-sm"></span>');
 
-                    var url = isAdmin 
-                        ? '@Url.Action("SendMessageToTrainer", "Admin")'
-                        : '@Url.Action("SendMessage", "Message")';
-                    var postData = isAdmin
-                        ? {
-                            trainerId: currentTrainerId,
-                            content: content,
-                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    var url, postData;
+                    
+                    if (isAdmin) {
+                        if (currentUserType === 'Member' && currentMemberId) {
+                            url = '@Url.Action("SendMessageToMember", "Admin")';
+                            postData = {
+                                memberId: currentMemberId,
+                                content: content,
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            };
+                        } else {
+                            url = '@Url.Action("SendMessageToTrainer", "Admin")';
+                            postData = {
+                                trainerId: currentTrainerId,
+                                content: content,
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            };
                         }
-                        : {
-                            otherUserId: currentTrainerId,
-                            otherUserType: 'Trainer',
+                    } else {
+                        url = '@Url.Action("SendMessage", "Message")';
+                        postData = {
+                            otherUserId: currentTrainerId || currentMemberId,
+                            otherUserType: currentUserType || 'Trainer',
                             content: content,
                             __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                         };
+                    }
+                    
                     $.post(url, postData, function(data) {
                         if (data.success) {
                             $('#messageInput').val('');
-                            var trainerName = $('#conversationTrainerName').text();
-                            loadConversationMessages(currentTrainerId, trainerName);
+                            var userName = $('#conversationTrainerName').text();
+                            loadConversationMessages(currentTrainerId || currentMemberId, userName, currentUserType);
                             loadMessageCount();
                         } else {
                             alert(data.message || 'Mesaj gönderilirken bir hata oluştu.');

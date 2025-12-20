@@ -26,6 +26,23 @@ namespace proje.Models
         [Display(Name = "Randevu ID")]
         public int? AppointmentId { get; set; }
 
+        [Display(Name = "Mesaj ID")]
+        public int? MessageId { get; set; }
+
+        [Display(Name = "Gönderen ID (Trainer/Member)")]
+        public int? SenderId { get; set; }
+
+        [StringLength(20)]
+        [Display(Name = "Gönderen Tipi")]
+        public string? SenderType { get; set; }
+
+        [Display(Name = "Alıcı ID (Trainer/Member - Admin için)")]
+        public int? ReceiverId { get; set; }
+
+        [StringLength(20)]
+        [Display(Name = "Alıcı Tipi")]
+        public string? ReceiverType { get; set; }
+
         [Display(Name = "Okundu mu")]
         public bool IsRead { get; set; } = false;
 

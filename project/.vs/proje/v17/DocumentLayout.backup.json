@@ -63,11 +63,15 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
               "$type": "Document",
@@ -79,8 +83,7 @@
               "RelativeToolTip": "Controllers\\AdminController.cs",
               "ViewState": "AgIAAOMDAAAAAAAAAAApwPUDAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-19T20:15:07.09Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-19T20:15:07.09Z"
             },
             {
               "$type": "Document",
@@ -92,8 +95,7 @@
               "RelativeToolTip": "Controllers\\GymsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAMcAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-14T16:22:21.66Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-14T16:22:21.66Z"
             },
             {
               "$type": "Document",
@@ -151,14 +153,10 @@
               "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
               "ToolTip": "C:\\Users\\saren\\OneDrive\\Desktop\\webProgramlama\\project\\Views\\Shared\\_Layout.cshtml",
               "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
-              "ViewState": "AgIAAFQBAAAAAAAAAAAtwGIBAABSAAAAAAAAAA==",
+              "ViewState": "AgIAAKgBAAAAAAAAAIAwwLUBAABOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-12-09T20:54:38.62Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
               "$type": "Document",
