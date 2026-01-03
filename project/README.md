@@ -88,33 +88,6 @@ Modern web teknolojileri kullanılarak geliştirilmiş, spor salonu yönetimi i�
 
 > Not: İlk çalıştırmada otomatik olarak admin kullanıcısı ve roller oluşturulur.
 
-## 📁 Proje Yapısı
-
-```
-proje/
-├── Controllers/          # MVC Controllers
-│   ├── AdminController.cs
-│   ├── TrainerController.cs
-│   ├── MemberController.cs
-│   ├── AppointmentController.cs
-│   └── ReportsApiController.cs
-├── Models/               # Data Models
-│   ├── Gym.cs
-│   ├── Trainer.cs
-│   ├── Member.cs
-│   └── Appointment.cs
-├── Views/               # Razor Views
-│   ├── Admin/
-│   ├── Trainer/
-│   └── Member/
-├── Data/                # Database Context
-│   ├── ApplicationDbContext.cs
-│   └── DbInitializer.cs
-├── Services/            # Business Services
-│   └── OpenAIService.cs
-└── Migrations/          # EF Migrations
-```
-
 ## 🔐 Roller ve Yetkiler
 
 | Rol | Açıklama | Yetkiler |
@@ -122,23 +95,6 @@ proje/
 | **Admin** | Sistem yöneticisi | Tüm işlemler, spor salonu/üye/antrenör yönetimi |
 | **Member** | Üye | Randevu oluşturma, profil yönetimi, beslenme planları |
 | **Trainer** | Antrenör | Randevu onaylama, müsaitlik yönetimi, profil yönetimi |
-
-## 🔌 API Endpoints
-
-### Reports API
-```http
-GET /api/ReportsApi/trainers?gymId=1&isActive=true
-GET /api/ReportsApi/member-appointments/{memberId}?status=Approved
-GET /api/ReportsApi/members?gymId=1
-```
-
-### Appointments API
-```http
-GET    /api/AppointmentsApi
-POST   /api/AppointmentsApi
-PUT    /api/AppointmentsApi/{id}
-DELETE /api/AppointmentsApi/{id}
-```
 
 ## 📊 Veritabanı Şeması
 
@@ -151,21 +107,6 @@ Ana tablolar:
 - `NutritionPlans` - Beslenme planları
 - `AIRecommendations` - AI önerileri
 - `Notifications` - Bildirimler
-
-Detaylı veritabanı modeli için [VERITABANI_MODELI.md](VERITABANI_MODELI.md) dosyasına bakınız.
-
-## ✅ Proje Gereksinimleri
-
-Bu proje aşağıdaki tüm gereksinimleri karşılamaktadır:
-
-- ✅ Front-End (Arayüz) - Modern, responsive web arayüzü
-- ✅ CRUD İşlemleri - Tüm temel varlıklar için Create, Read, Update, Delete
-- ✅ Veri Doğrulama - İstemci ve sunucu tarafında validation
-- ✅ Admin Paneli - Kapsamlı yönetim paneli
-- ✅ Kullanıcı Kayıt/Üye Olma - Kayıt sayfası ve üyelik sistemi
-- ✅ Rol Bazlı Yetkilendirme - Admin, Member, Trainer rolleri
-- ✅ Authorization - Doğru şekilde uygulanmış yetkilendirme
-- ✅ API Hizmeti - LINQ sorguları kullanan REST API
 
 ## 🤖 AI Entegrasyonu (Opsiyonel)
 
@@ -221,40 +162,3 @@ dotnet ef database update PreviousMigrationName
 - **Ders:** Web Programlama
 - **Proje Tipi:** Spor Salonu Yönetim ve Randevu Sistemi
 
-## 📸 Ekran Görüntüleri
-
-> Not: Ekran görüntüleri eklemek için bu bölümü düzenleyebilirsiniz.
-
-## 🤝 Katkıda Bulunma
-
-Bu proje eğitim amaçlı geliştirilmiştir. Katkılarınız için:
-
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/AmazingFeature`)
-3. Commit edin (`git commit -m 'Add some AmazingFeature'`)
-4. Push edin (`git push origin feature/AmazingFeature`)
-5. Pull Request açın
-
-## 📄 Lisans
-
-Bu proje eğitim amaçlı geliştirilmiştir.
-
-## 👤 Yazar
-
-**g231210012**
-- Email: g231210012@sakarya.edu.tr
-- Üniversite: Sakarya Üniversitesi
-
-## 🙏 Teşekkürler
-
-- [ASP.NET Core](https://dotnet.microsoft.com/apps/aspnet)
-- [Entity Framework Core](https://docs.microsoft.com/ef/core/)
-- [Bootstrap](https://getbootstrap.com/)
-- [OpenAI](https://openai.com/)
-
----
-
-⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!
-
-**Son Güncelleme:** Aralık 2025  
-**Versiyon:** 1.0
